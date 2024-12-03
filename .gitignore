@@ -122,6 +122,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+uv.lock
 .env
 .venv
 env/
@@ -145,6 +146,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache/
+
 # Pyre type checker
 .pyre/
 
@@ -160,3 +164,6 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# VS code
+.vscode/

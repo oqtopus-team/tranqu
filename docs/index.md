@@ -1,6 +1,7 @@
 # Tranqu
-
-Tranqu is a one-stop framework for transpilers across multiple quantum programming libraries and formats for quantum circuits..
+[![CI](https://github.com/oqtopus-team/tranqu/actions/workflows/ci.yaml/badge.svg)](https://github.com/oqtopus-team/tranqu/actions/workflows/ci.yaml)
+[![pypi version](https://img.shields.io/pypi/v/tranqu.svg)](https://pypi.org/project/tranqu/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Overview
 
@@ -13,6 +14,8 @@ By using Tranqu, you can run various vendors' transpilers without being bothered
 
 The name "Tranqu" is derived from "tranquility", reflecting the desire to enable the smooth and stress-free use of transpilers.
 
+![Tranqu](./asset/overview.png)
+
 ## Features
 
 - **Program Converter**: Converts quantum circuits into another library's format.
@@ -21,13 +24,27 @@ The name "Tranqu" is derived from "tranquility", reflecting the desire to enable
 - **Transpilation Statistics**: Outputs statistical data before and after transpilation.
 - **Using Custom Transpilers and Converters**: Uses user-created Transpilers, Program Converters, and Device Converters in Tranqu.
 
-## Documentation
+## Usage
 
-- [Documentation Home](https://tranqu.readthedocs.io/)
+- [Getting Started](./usage/getting_started.ipynb)
+- [How It Works](./usage/how_it_works.ipynb)
+- [Using Custom Transpilers and Converters](./usage/custom.ipynb)
 
-## CITATION
+## API reference
 
-You can use the DOI to cite OQTOPUS Cloud in your research.
+- [API reference](./reference/API_reference.md)
+
+## Developer Guidelines
+
+- [Development Flow](./developer_guidelines/index.md)
+- [Setup Development Environment](./developer_guidelines/setup.md)
+- [How to Contribute](./CONTRIBUTING.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Security](./SECURITY.md)
+
+## Citation
+
+You can use the DOI to cite Tranqu in your research.
 
 Citation information is also available in the [CITATION](https://github.com/oqtopus-team/tranqu/blob/main/CITATION.cff) file.
 
@@ -38,6 +55,11 @@ or you can contact us by email:
 
 - [oqtopus-team[at]googlegroups.com](mailto:oqtopus-team[at]googlegroups.com)
 
-## LICENSE
+## License
 
 Tranqu is released under the [Apache License 2.0](https://github.com/oqtopus-team/tranqu/blob/main/LICENSE).
+
+## Supporting
+
+This work was supported by JST COI-NEXT, Grant No. JPMJPF2014.
+A part of this work was performed for Council for Science, Technology and Innovation (CSTI), Cross-ministerial Strategic Innovation Promotion Program (SIP), ‘Building and operation of a domestically developed quantum computer testbed environment’ (funding agency: QST).

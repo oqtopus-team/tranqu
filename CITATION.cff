@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Tranqu: A one-stop framework for transpilers across multiple quantum programming libraries and formats for quantum circuits"
+authors:
+- family-names: "Masumoto"
+  given-names: "Naoyuki"
+- family-names: "Miyaji"
+  given-names: "Kosuke"
+- family-names: "Miyanaga"
+  given-names: "Takafumi"
+  orcid: "https://orcid.org/0009-0001-5094-6035"
+- family-names: "Mori"
+  given-names: "Toshio"
+- family-names: "Sasada"
+  given-names: "Keita"
+- family-names: "Takamiya"
+  given-names: "Yasuhito"
+- family-names: "Tsukano"
+  given-names: "Satoyuki"
+  orcid: "https://orcid.org/0009-0000-3825-9083"
+- family-names: "Fujii"
+  given-names: "Keisuke"
+version: 0.1.0
+date-released: 2024-12-03
+license: Apache-2.0
+repository-code: "https://github.com/oqtopus-team/tranqu"
+url: "https://tranqu.readthedocs.io/"

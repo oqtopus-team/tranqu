@@ -1,0 +1,19 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/build-customization.html for details
+
+# Required
+version: 2
+
+# Set the OS, Python version and other tools you might need
+build:
+  os: "ubuntu-22.04"
+  tools:
+    python: "3.12"
+  commands:
+  - asdf plugin add uv
+  - asdf install uv latest
+  - asdf global uv latest
+  - uv sync --extra docs --frozen
+  - NO_COLOR=1 uv run mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
+
