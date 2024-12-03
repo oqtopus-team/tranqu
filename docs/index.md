@@ -1,6 +1,5 @@
 # Tranqu
 [![CI](https://github.com/oqtopus-team/tranqu/actions/workflows/ci.yaml/badge.svg)](https://github.com/oqtopus-team/tranqu/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/oqtopus-team/tranqu/graph/badge.svg?token=RCXTMMXOMV)](https://codecov.io/gh/oqtopus-team/tranqu)
 [![pypi version](https://img.shields.io/pypi/v/tranqu.svg)](https://pypi.org/project/tranqu/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -46,6 +45,8 @@ The name "Tranqu" is derived from "tranquility", reflecting the desire to enable
 ## Citation
 
 You can use the DOI to cite Tranqu in your research.
+
+[![DOI](https://zenodo.org/badge/898082553.svg)](https://zenodo.org/badge/latestdoi/898082553)
 
 Citation information is also available in the [CITATION](https://github.com/oqtopus-team/tranqu/blob/main/CITATION.cff) file.
 
