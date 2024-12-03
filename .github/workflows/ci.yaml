@@ -25,3 +25,8 @@ jobs:
       
     - name: Run tests
       run: uv run pytest
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        files: ./coverage.xml
