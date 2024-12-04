@@ -4,7 +4,11 @@
   "name": "uv",
   "build": {
     "context": "..",
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Dockerfile",
+    "args": {
+      "UV_VERSION": "0.5.5",
+      "DEBIAN_VERSION": "bookworm"
+    }
   },
   "features": {
     "ghcr.io/dhoeric/features/hadolint:1": {}
@@ -12,21 +16,25 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "charliermarsh.ruff",
+        "exiasr.hadolint",
+        "kevinrose.vsc-python-indent",
         "ms-azuretools.vscode-docker",
         "ms-python.python",
+        "njpwerner.autodocstring",
         "redhat.vscode-yaml",
-        "ms-toolsai.jupyter"
-      ],
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.profiles.linux": {
-          "zsh": {
-            "path": "/bin/zsh"
-          }
-        }
-      }
+        "shardulm94.trailing-spaces",
+        "tamasfe.even-better-toml"
+      ]
     }
   },
-  "postCreateCommand": "uv sync --dev",
+  "containerEnv": {
+    "DISPLAY": "dummy",
+    "PYTHONUNBUFFERED": "True",
+    "UV_LINK_MODE": "copy",
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv",
+    "VIRTUAL_ENV": "/home/vscode/.venv"
+  },
+  "postCreateCommand": "uv sync --frozen",
   "remoteUser": "vscode"
 }
