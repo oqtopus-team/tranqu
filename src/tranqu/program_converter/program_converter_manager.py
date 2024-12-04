@@ -93,9 +93,7 @@ class ProgramConverterManager:
         """
         key = (from_lib, to_lib)
         if key in self._converters:
-            msg = f"Converter already registered for conversion from {from_lib} to {
-                to_lib
-            }."
+            msg = f"Converter already registered for conversion from {from_lib} to {to_lib}."  # noqa: E501
             raise ProgramConverterAlreadyRegisteredError(msg)
 
         self._converters[key] = converter
