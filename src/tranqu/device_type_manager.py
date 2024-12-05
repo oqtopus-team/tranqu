@@ -23,25 +23,18 @@ class DeviceTypeManager:
         """
         self._type_registry[device_type] = device_lib
 
-    def detect_lib(self, device: Any) -> str:  # noqa: ANN401
+    def detect_lib(self, device: Any) -> str | None:  # noqa: ANN401
         """Detect library based on device type.
 
         Args:
             device (Any): Device to inspect
 
         Returns:
-            str: Detected library identifier
-
-        Raises:
-            DeviceLibNotFoundError: When device type is not registered
+            str | None: Detected library identifier or None
 
         """
         for device_type, lib in self._type_registry.items():
             if isinstance(device, device_type):
                 return lib
 
-        msg = (
-            "Could not detect device library. Please specify device_lib or "
-            "use register_device_type() to register the device type."
-        )
-        raise DeviceLibNotFoundError(msg)
+        return None
