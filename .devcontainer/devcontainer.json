@@ -6,7 +6,7 @@
     "context": "..",
     "dockerfile": "Dockerfile",
     "args": {
-      "UV_VERSION": "0.5.5",
+      "UV_VERSION": "0.5.6",
       "DEBIAN_VERSION": "bookworm"
     }
   },
