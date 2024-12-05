@@ -79,12 +79,14 @@ from typing import TYPE_CHECKING, Any
 
 from pytket import Circuit as TketCircuit
 from qiskit import QuantumCircuit as QiskitCircuit  # type: ignore[import-untyped]
+from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 
 from .device_converter import (
     DeviceConverter,
     DeviceConverterManager,
     OqtoqusToQiskitDeviceConverter,
 )
+from .device_type_manager import DeviceTypeManager
 from .program_converter import (
     Openqasm3ToQiskitProgramConverter,
     Openqasm3ToTketProgramConverter,
@@ -118,11 +120,13 @@ class Tranqu:
         self._device_converter_manager = DeviceConverterManager()
         self._transpiler_manager = TranspilerManager()
         self._program_type_manager = ProgramTypeManager()
+        self._device_type_manager = DeviceTypeManager()
 
         self._register_builtin_program_converters()
         self._register_builtin_device_converters()
         self._register_builtin_transpilers()
         self._register_builtin_program_types()
+        self._register_builtin_device_types()
 
     def transpile(  # noqa: PLR0913
         self,
@@ -263,6 +267,24 @@ class Tranqu:
         """
         self._program_type_manager.register_type(program_lib, program_type)
 
+    def register_device_type(self, device_lib: str, device_type: type) -> None:
+        """Register a mapping between a device type and its library identifier.
+
+        This method enables automatic detection of the device library based on
+        the device type when calling transpile().
+
+        Args:
+            device_lib (str): The identifier for the device library
+              (e.g., "qiskit", "oqtopus")
+            device_type (type): The type class to be associated with the library
+
+        Examples:
+            To register Qiskit's backend type:
+                tranqu.register_device_type("qiskit", BackendV2)
+
+        """
+        self._device_type_manager.register_type(device_lib, device_type)
+
     def _detect_program_lib(self, program: Any) -> str:  # noqa: ANN401
         """Detect the program library based on the program's type.
 
@@ -330,3 +352,6 @@ class Tranqu:
     def _register_builtin_program_types(self) -> None:
         self.register_program_type("qiskit", QiskitCircuit)
         self.register_program_type("tket", TketCircuit)
+
+    def _register_builtin_device_types(self) -> None:
+        self.register_device_type("qiskit", BackendV2)
