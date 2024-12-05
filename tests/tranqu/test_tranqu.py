@@ -48,7 +48,9 @@ class TestTranqu:
             )
             circuit = EnigmaCircuit()
 
-            result = tranqu.transpile(circuit, "enigma", "qiskit")
+            result = tranqu.transpile(
+                circuit, program_lib="enigma", transpiler_lib="qiskit"
+            )
 
             assert isinstance(result.transpiled_program, EnigmaCircuit)
 
@@ -148,7 +150,7 @@ c[1] = measure $2;
             ProgramConversionPathNotFoundError,
             match="No ProgramConverter path found to convert from enigma to qiskit",
         ):
-            tranqu.transpile(circuit, "enigma", "qiskit")
+            tranqu.transpile(circuit, program_lib="enigma", transpiler_lib="qiskit")
 
     def test_device_conversion_path_not_found(self):
         tranqu = Tranqu()

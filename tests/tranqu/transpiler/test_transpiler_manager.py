@@ -51,7 +51,9 @@ class TestTranspilerManager:
         tranqu.register_transpiler("nop", NopTranspiler())
         tranqu.register_program_converter("nop", "openqasm3", NopToQasm3Converter())
         tranqu.register_program_converter("openqasm3", "nop", Qasm3ToNopConverter())
-        result = tranqu.transpile(qasm_code, "openqasm3", "nop")
+        result = tranqu.transpile(
+            qasm_code, program_lib="openqasm3", transpiler_lib="nop"
+        )
 
         assert result.transpiled_program.strip() == qasm_code.strip()
 
