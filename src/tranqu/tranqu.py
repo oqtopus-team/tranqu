@@ -77,11 +77,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from pytket import Circuit as TketCircuit
+from qiskit import QuantumCircuit as QiskitCircuit  # type: ignore[import-untyped]
+from qiskit.providers import BackendV2  # type: ignore[import-untyped]
+
 from .device_converter import (
     DeviceConverter,
     DeviceConverterManager,
     OqtoqusToQiskitDeviceConverter,
 )
+from .device_type_manager import DeviceTypeManager
 from .program_converter import (
     Openqasm3ToQiskitProgramConverter,
     Openqasm3ToTketProgramConverter,
@@ -92,6 +97,7 @@ from .program_converter import (
     TketToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
 )
+from .program_type_manager import ProgramTypeManager
 from .transpiler import (
     QiskitTranspiler,
     TranspilerManager,
@@ -113,16 +119,20 @@ class Tranqu:
         self._program_converter_manager = ProgramConverterManager()
         self._device_converter_manager = DeviceConverterManager()
         self._transpiler_manager = TranspilerManager()
+        self._program_type_manager = ProgramTypeManager()
+        self._device_type_manager = DeviceTypeManager()
 
         self._register_builtin_program_converters()
         self._register_builtin_device_converters()
         self._register_builtin_transpilers()
+        self._register_builtin_program_types()
+        self._register_builtin_device_types()
 
     def transpile(  # noqa: PLR0913
         self,
         program: Any,  # noqa: ANN401
-        program_lib: str,
         transpiler_lib: str,
+        program_lib: str | None = None,
         *,
         transpiler_options: dict[str, Any] | None = None,
         device: Any | None = None,  # noqa: ANN401
@@ -132,17 +142,16 @@ class Tranqu:
 
         Args:
             program (Any): The program to be transformed.
-            program_lib (str): The library or format of the program.
             transpiler_lib (str): The name of the transpiler to be used.
+            program_lib (str | None): The library or format of the program. If None,
+                will attempt to detect based on program type.
             transpiler_options (dict[str, Any]): Options passed to the transpiler.
             device (Any | None): Information about the device on which
                 the program will be executed.
             device_lib (str | None): Specifies the type of the device.
 
         Returns:
-            TranspileResult: The result of the transpilation, including
-                the transpiled program, various statistical information,
-                and mapping between virtual and physical quantum bits.
+            TranspileResult: The result of the transpilation.
 
         """
         dispatcher = TranspilerDispatcher(
@@ -153,11 +162,11 @@ class Tranqu:
 
         return dispatcher.dispatch(
             program,
-            program_lib,
+            program_lib or self._detect_program_lib(program),
             transpiler_lib,
             transpiler_options,
             device,
-            device_lib,
+            device_lib or self._detect_device_lib(program),
         )
 
     def register_transpiler(
@@ -240,6 +249,66 @@ class Tranqu:
             converter,
         )
 
+    def register_program_type(self, program_lib: str, program_type: type) -> None:
+        """Register a mapping between a program type and its library identifier.
+
+        This method allows automatic detection of the program library based on the
+        program's type when calling transpile().
+
+        Args:
+            program_lib (str): The identifier for the program library
+              (e.g., "qiskit", "tket")
+            program_type (type): The type class to be associated with the library
+
+        Examples:
+            To register Qiskit's QuantumCircuit type:
+                tranqu.register_program_type("qiskit", QuantumCircuit)
+
+        """
+        self._program_type_manager.register_type(program_lib, program_type)
+
+    def register_device_type(self, device_lib: str, device_type: type) -> None:
+        """Register a mapping between a device type and its library identifier.
+
+        This method enables automatic detection of the device library based on
+        the device type when calling transpile().
+
+        Args:
+            device_lib (str): The identifier for the device library
+              (e.g., "qiskit", "oqtopus")
+            device_type (type): The type class to be associated with the library
+
+        Examples:
+            To register Qiskit's backend type:
+                tranqu.register_device_type("qiskit", BackendV2)
+
+        """
+        self._device_type_manager.register_type(device_lib, device_type)
+
+    def _detect_program_lib(self, program: Any) -> str:  # noqa: ANN401
+        """Detect the program library based on the program's type.
+
+        Args:
+            program (Any): The program whose type should be checked
+
+        Returns:
+            str: The detected library identifier
+
+        """
+        return self._program_type_manager.detect_lib(program)
+
+    def _detect_device_lib(self, device: Any) -> str | None:  # noqa: ANN401
+        """Detect the device library based on the device's type.
+
+        Args:
+            device (Any): The device whose type should be checked
+
+        Returns:
+            str | None: The detected library identifier or None if not detected
+
+        """
+        return self._device_type_manager.detect_lib(device)
+
     def _register_builtin_program_converters(self) -> None:
         self.register_program_converter(
             "openqasm3",
@@ -291,3 +360,10 @@ class Tranqu:
 
     def _register_builtin_transpilers(self) -> None:
         self.register_transpiler("qiskit", QiskitTranspiler())
+
+    def _register_builtin_program_types(self) -> None:
+        self.register_program_type("qiskit", QiskitCircuit)
+        self.register_program_type("tket", TketCircuit)
+
+    def _register_builtin_device_types(self) -> None:
+        self.register_device_type("qiskit", BackendV2)
