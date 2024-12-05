@@ -148,7 +148,7 @@ class TranspilerDispatcher:
         )
         if not (can_convert_to_qiskit and can_convert_to_target):
             msg = (
-                f"No ProgramConverter path found to convert from {from_lib} to {to_lib}"  # noqa: E501
+                f"No ProgramConverter path found to convert from {from_lib} to {to_lib}"
             )
             raise ProgramConversionPathNotFoundError(msg)
 
@@ -186,7 +186,7 @@ class TranspilerDispatcher:
         )
         if not (can_convert_to_qiskit and can_convert_to_target):
             msg = (
-                f"No DeviceConverter path found to convert from {from_lib} to {to_lib}"  # noqa: E501
+                f"No DeviceConverter path found to convert from {from_lib} to {to_lib}"
             )
             raise DeviceConversionPathNotFoundError(msg)
 
