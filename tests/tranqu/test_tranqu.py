@@ -2,10 +2,15 @@
 
 import re
 
+import pytest
 from qiskit import QuantumCircuit as QiskitCircuit
 
 from tranqu import Tranqu, __version__
 from tranqu.program_converter import ProgramConverter
+from tranqu.transpiler_dispatcher import (
+    DeviceConversionPathNotFoundError,
+    ProgramConversionPathNotFoundError,
+)
 
 
 class EnigmaCircuit:
@@ -134,3 +139,30 @@ c[0] = measure $3;
 c[1] = measure $2;
 """
             assert result.transpiled_program == expected_program
+
+    def test_program_conversion_path_not_found(self):
+        tranqu = Tranqu()
+        circuit = EnigmaCircuit()
+
+        with pytest.raises(
+            ProgramConversionPathNotFoundError,
+            match="No ProgramConverter path found to convert from enigma to qiskit",
+        ):
+            tranqu.transpile(circuit, "enigma", "qiskit")
+
+    def test_device_conversion_path_not_found(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(2)
+        device = {"name": "custom_device", "qubits": [], "couplings": []}
+
+        with pytest.raises(
+            DeviceConversionPathNotFoundError,
+            match="No DeviceConverter path found to convert from custom to qiskit",
+        ):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=device,
+                device_lib="custom",
+            )
