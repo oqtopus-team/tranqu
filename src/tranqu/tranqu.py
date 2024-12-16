@@ -158,15 +158,17 @@ class Tranqu:
             self._transpiler_manager,
             self._program_converter_manager,
             self._device_converter_manager,
+            self._program_type_manager,
+            self._device_type_manager,
         )
 
         return dispatcher.dispatch(
             program,
-            program_lib or self._detect_program_lib(program),
+            program_lib,
             transpiler_lib,
             transpiler_options,
             device,
-            device_lib or self._detect_device_lib(program),
+            device_lib,
         )
 
     def register_transpiler(
@@ -284,30 +286,6 @@ class Tranqu:
 
         """
         self._device_type_manager.register_type(device_lib, device_type)
-
-    def _detect_program_lib(self, program: Any) -> str:  # noqa: ANN401
-        """Detect the program library based on the program's type.
-
-        Args:
-            program (Any): The program whose type should be checked
-
-        Returns:
-            str: The detected library identifier
-
-        """
-        return self._program_type_manager.detect_lib(program)
-
-    def _detect_device_lib(self, device: Any) -> str | None:  # noqa: ANN401
-        """Detect the device library based on the device's type.
-
-        Args:
-            device (Any): The device whose type should be checked
-
-        Returns:
-            str | None: The detected library identifier or None if not detected
-
-        """
-        return self._device_type_manager.detect_lib(device)
 
     def _register_builtin_program_converters(self) -> None:
         self.register_program_converter(
