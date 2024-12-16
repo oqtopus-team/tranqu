@@ -11,7 +11,11 @@ from tranqu import Tranqu, __version__
 from tranqu.program_converter import ProgramConverter
 from tranqu.transpiler_dispatcher import (
     DeviceConversionPathNotFoundError,
+    DeviceNotSpecifiedError,
     ProgramConversionPathNotFoundError,
+    ProgramLibNotFoundError,
+    ProgramNotSpecifiedError,
+    TranspilerLibNotSpecifiedError,
 )
 
 
@@ -204,3 +208,61 @@ c[1] = measure $2;
         )
 
         assert isinstance(result.transpiled_program, QiskitCircuit)
+
+    def test_program_not_specified(self):
+        tranqu = Tranqu()
+
+        with pytest.raises(
+            ProgramNotSpecifiedError,
+            match="No program specified.",
+        ):
+            tranqu.transpile(
+                program=None,
+                transpiler_lib="qiskit",
+            )
+
+    def test_transpiler_lib_not_specified(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(1)
+
+        with pytest.raises(
+            TranspilerLibNotSpecifiedError,
+            match="No transpiler library specified.",
+        ):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib=None,
+            )
+
+    def test_program_lib_not_found(self):
+        tranqu = Tranqu()
+
+        class UnknownCircuit:
+            pass
+
+        circuit = UnknownCircuit()
+
+        with pytest.raises(
+            ProgramLibNotFoundError, match="Could not detect program library."
+        ):
+            tranqu.transpile(
+                circuit,
+                transpiler_lib="qiskit",
+            )
+
+    def test_device_not_specified_error(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(1)
+
+        with pytest.raises(
+            DeviceNotSpecifiedError,
+            match="Device library is specified but no device is specified.",
+        ):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=None,
+                device_lib="qiskit",
+            )
