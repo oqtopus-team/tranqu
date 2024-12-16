@@ -65,26 +65,27 @@ include = [
 ]
 lint.select = ["ALL"]
 lint.ignore = [
+  "COM812",
   "CPY001",
   "D100",
-  "D107",
   "D104",
+  "D107",
   "D203",
   "D213",
-  "COM812",
   "ISC001",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = [
-  "D",
   "ANN201",
+  "ANN205",
   "ANN401",
-  "S101",
   "CPY001",
+  "D",
+  "PLC1901",
   "PLR2004",
   "PLR6301",
-  "ANN205",
+  "S101",
 ]
 
 [tool.mypy]

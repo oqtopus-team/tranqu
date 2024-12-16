@@ -6,6 +6,7 @@ from tranqu import Tranqu
 from tranqu.program_converter import ProgramConverter
 from tranqu.transpile_result import TranspileResult
 from tranqu.transpiler import (
+    DefaultTranspilerLibAlreadyRegisteredError,
     Transpiler,
     TranspilerAlreadyRegisteredError,
     TranspilerManager,
@@ -56,6 +57,21 @@ class TestTranspilerManager:
         )
 
         assert result.transpiled_program.strip() == qasm_code.strip()
+
+    def test_register_default_transpiler_lib(self):
+        manager = TranspilerManager()
+        assert manager.fetch_default_transpiler_lib() == None  # noqa: E711
+
+        manager.register_default_transpiler_lib("nop")
+        assert manager.fetch_default_transpiler_lib() == "nop"
+
+    def test_register_default_transpiler_lib_already_registered(self):
+        manager = TranspilerManager()
+
+        manager.register_default_transpiler_lib("nop")
+
+        with pytest.raises(DefaultTranspilerLibAlreadyRegisteredError):
+            manager.register_default_transpiler_lib("nop")
 
     def test_register_transpiler_already_registered(self):
         manager = TranspilerManager()

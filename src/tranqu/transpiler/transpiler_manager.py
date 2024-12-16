@@ -7,6 +7,10 @@ class TranspilerError(TranquError):
     """Base exception for transpiler-related errors."""
 
 
+class DefaultTranspilerLibAlreadyRegisteredError(TranspilerError):
+    """Raised when a default transpiler_lib is already registered."""
+
+
 class TranspilerAlreadyRegisteredError(TranspilerError):
     """Raised when attempting to register a transpiler that already exists."""
 
@@ -24,6 +28,40 @@ class TranspilerManager:
 
     def __init__(self) -> None:
         self._transpilers: dict[str, Any] = {}
+        self._default_transpiler_lib: str | None = None
+
+    def register_default_transpiler_lib(
+        self,
+        default_transpiler_lib: str,
+    ) -> None:
+        """Register the default transpiler library.
+
+        Args:
+            default_transpiler_lib (str): The name of the default transpiler library
+                to register.
+
+        Raises:
+            DefaultTranspilerLibAlreadyRegisteredError: If a transpiler
+                with the same name is already registered.
+
+        """
+        if self._default_transpiler_lib is not None:
+            msg = (
+                f"Default transpiler_lib '{self._default_transpiler_lib}' "
+                "is already registered."
+            )
+            raise DefaultTranspilerLibAlreadyRegisteredError(msg)
+
+        self._default_transpiler_lib = default_transpiler_lib
+
+    def fetch_default_transpiler_lib(self) -> str | None:
+        """Fetch the default transpiler library.
+
+        Returns:
+            str: The default transpiler library.
+
+        """
+        return self._default_transpiler_lib
 
     def register_transpiler(
         self,
