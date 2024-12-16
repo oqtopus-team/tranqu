@@ -1,6 +1,5 @@
-import pytest
 
-from tranqu.program_type_manager import ProgramLibNotFoundError, ProgramTypeManager
+from tranqu.program_type_manager import ProgramTypeManager
 
 
 class DummyProgram:
@@ -19,18 +18,12 @@ class TestProgramTypeManager:
 
         assert result == "dummy"
 
-    def test_detect_lib_raises_error_for_unregistered_type(self):
+    def test_detect_lib_returns_none_for_unregistered_type(self):
         program = DummyProgram()
 
-        with pytest.raises(
-            ProgramLibNotFoundError,
-            match=(
-                "Could not detect program library. Please either "
-                "specify program_lib or register the program type "
-                "using register_program_type()."
-            ),
-        ):
-            self.manager.detect_lib(program)
+        result = self.manager.detect_lib(program)
+
+        assert result is None
 
     def test_detect_lib_with_multiple_registrations(self):
         class AnotherDummyProgram:

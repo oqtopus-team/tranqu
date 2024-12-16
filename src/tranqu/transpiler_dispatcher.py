@@ -13,6 +13,10 @@ class TranspilerDispatcherError(TranquError):
     """Base class for errors related to the transpiler dispatcher."""
 
 
+class ProgramLibNotFoundError(TranquError):
+    """Error when program library cannot be detected."""
+
+
 class ProgramNotSpecifiedError(TranspilerDispatcherError):
     """Error raised when no program is specified."""
 
@@ -99,7 +103,7 @@ class TranspilerDispatcher:
 
         Raises:
             ProgramNotSpecifiedError: Raised when no program is specified.
-            ProgramLibNotSpecifiedError: Raised when no program library is specified.
+            ProgramLibNotFoundError: Raised when program library cannot be detected.
             TranspilerLibNotSpecifiedError: Raised when no transpiler library
                 is specified.
             DeviceNotSpecifiedError: Raised when a device library is specified
@@ -118,10 +122,11 @@ class TranspilerDispatcher:
         )
         if detected_program_lib is None:
             msg = (
-                "No program library specified or detected. "
-                "Please specify a program format."
+                "Could not detect program library. Please either "
+                "specify program_lib or register the program type "
+                "using register_program_type()."
             )
-            raise ProgramLibNotSpecifiedError(msg)
+            raise ProgramLibNotFoundError(msg)
 
         detected_device_lib = (
             self._detect_device_lib(device) if device_lib is None else device_lib

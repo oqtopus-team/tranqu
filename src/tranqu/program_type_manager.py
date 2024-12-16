@@ -1,11 +1,5 @@
 from typing import Any
 
-from .tranqu_error import TranquError
-
-
-class ProgramLibNotFoundError(TranquError):
-    """Error when program library cannot be detected."""
-
 
 class ProgramTypeManager:
     """Class that manages the mapping between program types and library identifiers."""
@@ -23,26 +17,18 @@ class ProgramTypeManager:
         """
         self._type_registry[program_type] = program_lib
 
-    def detect_lib(self, program: Any) -> str:  # noqa: ANN401
+    def detect_lib(self, program: Any) -> str | None:  # noqa: ANN401
         """Detect the library based on the program type.
 
         Args:
             program (Any): Program to inspect
 
         Returns:
-            str: Detected library identifier
-
-        Raises:
-            ProgramLibNotFoundError: If the program type is not registered
+            str | None: Library identifier for registered program type, None otherwise
 
         """
         for program_type, lib in self._type_registry.items():
             if isinstance(program, program_type):
                 return lib
 
-        msg = (
-            "Could not detect program library. Please either "
-            "specify program_lib or register the program type "
-            "using register_program_type()."
-        )
-        raise ProgramLibNotFoundError(msg)
+        return None

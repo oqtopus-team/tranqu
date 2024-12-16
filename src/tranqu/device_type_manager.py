@@ -30,7 +30,7 @@ class DeviceTypeManager:
             device (Any): Device to inspect
 
         Returns:
-            str | None: Detected library identifier or None
+            str | None: Library identifier for registered device type, None otherwise
 
         """
         for device_type, lib in self._type_registry.items():
