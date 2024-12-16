@@ -1,4 +1,3 @@
-
 from tranqu.program_type_manager import ProgramTypeManager
 
 
