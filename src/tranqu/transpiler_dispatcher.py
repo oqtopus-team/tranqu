@@ -82,7 +82,7 @@ class TranspilerDispatcher:
         self,
         program: Any,  # noqa: ANN401
         program_lib: str | None,
-        transpiler_lib: str,
+        transpiler_lib: str | None,
         transpiler_options: dict[str, Any] | None,
         device: Any | None,  # noqa: ANN401
         device_lib: str | None,
@@ -93,7 +93,7 @@ class TranspilerDispatcher:
             program (Any): The quantum circuit to be transpiled
             program_lib (str): Name of the library for the input circuit
                 (e.g., "qiskit")
-            transpiler_lib (str): Name of the transpiler library to use
+            transpiler_lib (str | None): Name of the transpiler library to use
             transpiler_options (dict | None): Options to be passed to the transpiler
             device (Any | None): Target device (optional)
             device_lib (str | None): Name of the device library (optional)
@@ -114,8 +114,13 @@ class TranspilerDispatcher:
             msg = "No program specified. Please specify a valid quantum circuit."
             raise ProgramNotSpecifiedError(msg)
         if transpiler_lib is None:
-            msg = "No transpiler library specified. Please specify a transpiler to use."
-            raise TranspilerLibNotSpecifiedError(msg)
+            transpiler_lib = self._transpiler_manager.fetch_default_transpiler_lib()
+            if transpiler_lib is None:
+                msg = (
+                    "No transpiler library specified."
+                    " Please specify a transpiler to use."
+                )
+                raise TranspilerLibNotSpecifiedError(msg)
 
         detected_program_lib = (
             self._detect_program_lib(program) if program_lib is None else program_lib

@@ -39,6 +39,16 @@ class TestTranqu:
         # Check if the version string follows semantic versioning format
         assert re.match(r"^\d+\.\d+\.\d+(-\w+(\.\d+)?)?$", __version__)
 
+    def test_default_transpiler_lib_not_found(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(1)
+
+        with pytest.raises(TranspilerLibNotSpecifiedError):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+            )
+
     class TestCustomProgramsAndConverters:
         def test_transpile_custom_circuit_with_qiskit_transpiler(self):
             tranqu = Tranqu()
