@@ -3,13 +3,19 @@
 import re
 
 import pytest
+from pytket import Circuit as TketCircuit
 from qiskit import QuantumCircuit as QiskitCircuit
+from qiskit_ibm_runtime.fake_provider import FakeSantiagoV2
 
 from tranqu import Tranqu, __version__
 from tranqu.program_converter import ProgramConverter
 from tranqu.transpiler_dispatcher import (
     DeviceConversionPathNotFoundError,
+    DeviceNotSpecifiedError,
     ProgramConversionPathNotFoundError,
+    ProgramLibNotFoundError,
+    ProgramNotSpecifiedError,
+    TranspilerLibNotSpecifiedError,
 )
 
 
@@ -48,7 +54,9 @@ class TestTranqu:
             )
             circuit = EnigmaCircuit()
 
-            result = tranqu.transpile(circuit, "enigma", "qiskit")
+            result = tranqu.transpile(
+                circuit, program_lib="enigma", transpiler_lib="qiskit"
+            )
 
             assert isinstance(result.transpiled_program, EnigmaCircuit)
 
@@ -148,7 +156,7 @@ c[1] = measure $2;
             ProgramConversionPathNotFoundError,
             match="No ProgramConverter path found to convert from enigma to qiskit",
         ):
-            tranqu.transpile(circuit, "enigma", "qiskit")
+            tranqu.transpile(circuit, program_lib="enigma", transpiler_lib="qiskit")
 
     def test_device_conversion_path_not_found(self):
         tranqu = Tranqu()
@@ -165,4 +173,96 @@ c[1] = measure $2;
                 transpiler_lib="qiskit",
                 device=device,
                 device_lib="custom",
+            )
+
+    def test_detect_program_lib(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(1)
+
+        result = tranqu.transpile(
+            circuit,
+            transpiler_lib="qiskit",
+        )
+
+        assert isinstance(result.transpiled_program, QiskitCircuit)
+
+    def test_detect_program_lib_with_tket_circuit(self):
+        tranqu = Tranqu()
+        circuit = TketCircuit(1)
+
+        result = tranqu.transpile(
+            circuit,
+            transpiler_lib="qiskit",
+        )
+
+        assert isinstance(result.transpiled_program, TketCircuit)
+
+    def test_detect_device_lib(self):
+        tranqu = Tranqu()
+        device = FakeSantiagoV2()
+
+        result = tranqu.transpile(
+            QiskitCircuit(1),
+            transpiler_lib="qiskit",
+            device=device,
+        )
+
+        assert isinstance(result.transpiled_program, QiskitCircuit)
+
+    def test_program_not_specified(self):
+        tranqu = Tranqu()
+
+        with pytest.raises(
+            ProgramNotSpecifiedError,
+            match="No program specified.",
+        ):
+            tranqu.transpile(
+                program=None,
+                transpiler_lib="qiskit",
+            )
+
+    def test_transpiler_lib_not_specified(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(1)
+
+        with pytest.raises(
+            TranspilerLibNotSpecifiedError,
+            match="No transpiler library specified.",
+        ):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib=None,
+            )
+
+    def test_program_lib_not_found(self):
+        tranqu = Tranqu()
+
+        class UnknownCircuit:
+            pass
+
+        circuit = UnknownCircuit()
+
+        with pytest.raises(
+            ProgramLibNotFoundError, match="Could not detect program library."
+        ):
+            tranqu.transpile(
+                circuit,
+                transpiler_lib="qiskit",
+            )
+
+    def test_device_not_specified_error(self):
+        tranqu = Tranqu()
+        circuit = QiskitCircuit(1)
+
+        with pytest.raises(
+            DeviceNotSpecifiedError,
+            match="Device library is specified but no device is specified.",
+        ):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=None,
+                device_lib="qiskit",
             )

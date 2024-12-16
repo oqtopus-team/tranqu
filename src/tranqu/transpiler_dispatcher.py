@@ -1,7 +1,9 @@
 from typing import Any
 
 from .device_converter import DeviceConverterManager
+from .device_type_manager import DeviceTypeManager
 from .program_converter import ProgramConverterManager
+from .program_type_manager import ProgramTypeManager
 from .tranqu_error import TranquError
 from .transpile_result import TranspileResult
 from .transpiler import TranspilerManager
@@ -9,6 +11,10 @@ from .transpiler import TranspilerManager
 
 class TranspilerDispatcherError(TranquError):
     """Base class for errors related to the transpiler dispatcher."""
+
+
+class ProgramLibNotFoundError(TranquError):
+    """Error when program library cannot be detected."""
 
 
 class ProgramNotSpecifiedError(TranspilerDispatcherError):
@@ -51,6 +57,10 @@ class TranspilerDispatcher:
             quantum programs between different libraries.
         device_converter_manager (DeviceConverterManager): Handles conversion of
             device specifications between different libraries.
+        program_type_manager (ProgramTypeManager): Manages detection of program types
+            and their corresponding libraries.
+        device_type_manager (DeviceTypeManager): Manages detection of device types
+            and their corresponding libraries.
 
     """
 
@@ -59,17 +69,21 @@ class TranspilerDispatcher:
         transpiler_manager: TranspilerManager,
         program_converter_manager: ProgramConverterManager,
         device_converter_manager: DeviceConverterManager,
+        program_type_manager: ProgramTypeManager,
+        device_type_manager: DeviceTypeManager,
     ) -> None:
         self._transpiler_manager = transpiler_manager
         self._program_converter_manager = program_converter_manager
         self._device_converter_manager = device_converter_manager
+        self._program_type_manager = program_type_manager
+        self._device_type_manager = device_type_manager
 
     def dispatch(  # noqa: PLR0913 PLR0917
         self,
         program: Any,  # noqa: ANN401
-        program_lib: str,
+        program_lib: str | None,
         transpiler_lib: str,
-        transpiler_options: dict | None,
+        transpiler_options: dict[str, Any] | None,
         device: Any | None,  # noqa: ANN401
         device_lib: str | None,
     ) -> TranspileResult:
@@ -89,7 +103,7 @@ class TranspilerDispatcher:
 
         Raises:
             ProgramNotSpecifiedError: Raised when no program is specified.
-            ProgramLibNotSpecifiedError: Raised when no program library is specified.
+            ProgramLibNotFoundError: Raised when program library cannot be detected.
             TranspilerLibNotSpecifiedError: Raised when no transpiler library
                 is specified.
             DeviceNotSpecifiedError: Raised when a device library is specified
@@ -99,23 +113,36 @@ class TranspilerDispatcher:
         if program is None:
             msg = "No program specified. Please specify a valid quantum circuit."
             raise ProgramNotSpecifiedError(msg)
-        if program_lib is None:
-            msg = "No program library specified. Please specify a program format "
-            "('qiskit', 'openqasm3', 'tket', etc.)."
-            raise ProgramLibNotSpecifiedError(msg)
         if transpiler_lib is None:
-            msg = "No transpiler library specified. Please specify a transpiler to use "
-            "('qiskit', 'tket', etc.)."
+            msg = "No transpiler library specified. Please specify a transpiler to use."
             raise TranspilerLibNotSpecifiedError(msg)
-        if device_lib is not None and device is None:
-            msg = "Device library is specified but no device is specified. "
-            "Please specify a device."
+
+        detected_program_lib = (
+            self._detect_program_lib(program) if program_lib is None else program_lib
+        )
+        if detected_program_lib is None:
+            msg = (
+                "Could not detect program library. Please either "
+                "specify program_lib or register the program type "
+                "using register_program_type()."
+            )
+            raise ProgramLibNotFoundError(msg)
+
+        detected_device_lib = (
+            self._detect_device_lib(device) if device_lib is None else device_lib
+        )
+        if detected_device_lib is not None and device is None:
+            msg = "Device library is specified but no device is specified."
             raise DeviceNotSpecifiedError(msg)
 
         transpiler = self._transpiler_manager.fetch_transpiler(transpiler_lib)
 
-        converted_program = self._convert_program(program, program_lib, transpiler_lib)
-        converted_device = self._convert_device(device, device_lib, transpiler_lib)
+        converted_program = self._convert_program(
+            program, detected_program_lib, transpiler_lib
+        )
+        converted_device = self._convert_device(
+            device, detected_device_lib, transpiler_lib
+        )
 
         transpile_result = transpiler.transpile(
             converted_program,
@@ -126,10 +153,15 @@ class TranspilerDispatcher:
         transpile_result.transpiled_program = self._convert_program(
             transpile_result.transpiled_program,
             transpiler_lib,
-            program_lib,
+            detected_program_lib,
         )
-
         return transpile_result
+
+    def _detect_program_lib(self, program: Any) -> str | None:  # noqa: ANN401
+        return self._program_type_manager.detect_lib(program)
+
+    def _detect_device_lib(self, device: Any) -> str | None:  # noqa: ANN401
+        return self._device_type_manager.detect_lib(device)
 
     def _convert_program(self, program: Any, from_lib: str, to_lib: Any) -> Any:  # noqa: ANN401
         if self._program_converter_manager.has_converter(from_lib, to_lib):
