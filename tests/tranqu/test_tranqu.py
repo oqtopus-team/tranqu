@@ -9,6 +9,7 @@ from qiskit_ibm_runtime.fake_provider import FakeSantiagoV2
 
 from tranqu import Tranqu, __version__
 from tranqu.program_converter import ProgramConverter
+from tranqu.transpiler.transpiler_manager import TranspilerNotFoundError
 from tranqu.transpiler_dispatcher import (
     DeviceConversionPathNotFoundError,
     DeviceNotSpecifiedError,
@@ -38,16 +39,6 @@ class TestTranqu:
         assert isinstance(__version__, str)
         # Check if the version string follows semantic versioning format
         assert re.match(r"^\d+\.\d+\.\d+(-\w+(\.\d+)?)?$", __version__)
-
-    def test_default_transpiler_lib_not_found(self):
-        tranqu = Tranqu()
-        circuit = QiskitCircuit(1)
-
-        with pytest.raises(TranspilerLibNotSpecifiedError):
-            tranqu.transpile(
-                circuit,
-                program_lib="qiskit",
-            )
 
     class TestCustomProgramsAndConverters:
         def test_transpile_custom_circuit_with_qiskit_transpiler(self):
@@ -243,6 +234,20 @@ c[1] = measure $2;
                 circuit,
                 program_lib="qiskit",
                 transpiler_lib=None,
+            )
+
+    def test_transpiler_lib_not_exist(self):
+        tranqu = Tranqu()
+        tranqu.register_default_transpiler_lib("nop")
+        circuit = QiskitCircuit(1)
+
+        with pytest.raises(
+            TranspilerNotFoundError,
+            match="Unknown transpiler: nop",
+        ):
+            tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
             )
 
     def test_program_lib_not_found(self):
