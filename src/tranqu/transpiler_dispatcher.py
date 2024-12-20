@@ -114,7 +114,7 @@ class TranspilerDispatcher:
             msg = "No program specified. Please specify a valid quantum circuit."
             raise ProgramNotSpecifiedError(msg)
         if transpiler_lib is None:
-            transpiler_lib = self._transpiler_manager.fetch_default_transpiler_lib()
+            transpiler_lib = self._transpiler_manager.get_default_transpiler_lib()
             if transpiler_lib is None:
                 msg = (
                     "No transpiler library specified."

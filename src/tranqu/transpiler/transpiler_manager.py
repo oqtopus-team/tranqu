@@ -54,8 +54,8 @@ class TranspilerManager:
 
         self._default_transpiler_lib = default_transpiler_lib
 
-    def fetch_default_transpiler_lib(self) -> str | None:
-        """Fetch the default transpiler library.
+    def get_default_transpiler_lib(self) -> str | None:
+        """Get the default transpiler library.
 
         Returns:
             str: The default transpiler library.

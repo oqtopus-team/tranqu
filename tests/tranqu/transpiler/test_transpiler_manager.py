@@ -60,10 +60,10 @@ class TestTranspilerManager:
 
     def test_register_default_transpiler_lib(self):
         manager = TranspilerManager()
-        assert manager.fetch_default_transpiler_lib() == None  # noqa: E711
+        assert manager.get_default_transpiler_lib() == None  # noqa: E711
 
         manager.register_default_transpiler_lib("nop")
-        assert manager.fetch_default_transpiler_lib() == "nop"
+        assert manager.get_default_transpiler_lib() == "nop"
 
     def test_register_default_transpiler_lib_already_registered(self):
         manager = TranspilerManager()
