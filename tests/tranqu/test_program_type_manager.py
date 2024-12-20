@@ -57,11 +57,11 @@ class TestProgramTypeManager:
         class AnotherProgram:
             pass
 
-        with pytest.raises(ProgramLibraryAlreadyRegisteredError) as exc_info:
-            self.manager.register_type("dummy", AnotherProgram)
-
-        expected_msg = (
-            "Library 'dummy' is already registered. "
-            "Use allow_override=True to force registration."
-        )
-        assert str(exc_info.value) == expected_msg
+        with pytest.raises(
+            ProgramLibraryAlreadyRegisteredError,
+            match=(
+                "Library 'dummy' is already registered. "
+                "Use allow_override=True to force registration."
+            ),
+        ):
+            (self.manager.register_type("dummy", AnotherProgram),)

@@ -23,14 +23,14 @@ class ProgramTypeManager:
         """Register a program type with its corresponding library identifier.
 
         Args:
-            program_lib: Library identifier (e.g., "qiskit", "tket")
-            program_type: Type of the program to register
-            allow_override: When False, prevents overwriting existing registrations.
-                          Defaults to False.
+            program_lib (str): Library identifier (e.g., "qiskit", "tket")
+            program_type (type[Any]): Type of the program to register
+            allow_override (bool): When False, prevents overwriting existing
+              registrations. Defaults to False.
 
         Raises:
-            ProgramLibraryAlreadyRegisteredError: If the library is already registered
-                and allow_override is False.
+            ProgramLibraryAlreadyRegisteredError: If the library is already
+              registered and allow_override is False.
 
         """
         if not allow_override and program_lib in self._type_registry.values():
@@ -42,11 +42,11 @@ class ProgramTypeManager:
 
         self._type_registry[program_type] = program_lib
 
-    def detect_lib(self, program: type[Any]) -> str | None:
+    def detect_lib(self, program: Any) -> str | None:  # noqa: ANN401
         """Detect the library identifier for a given program instance.
 
         Args:
-            program: Program instance to inspect
+            program (Any): Program instance to inspect
 
         Returns:
             The library identifier if the program type is registered, None otherwise.
