@@ -28,7 +28,7 @@ The name "Tranqu" is derived from "tranquility," reflecting the desire to enable
 
 - [Documentation Home](https://tranqu.readthedocs.io/)
 
-## CITATION
+## Citation
 
 You can use the DOI to cite Tranqu in your research.
 
@@ -42,6 +42,6 @@ You can contact us by creating an issue in this repository or by email:
 
 - [oqtopus-team[at]googlegroups.com](mailto:oqtopus-team[at]googlegroups.com)
 
-## LICENSE
+## License
 
 Tranqu is released under the [Apache License 2.0](https://github.com/oqtopus-team/tranqu/blob/main/LICENSE).
