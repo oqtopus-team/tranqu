@@ -33,19 +33,23 @@ class TranspilerManager:
     def register_default_transpiler_lib(
         self,
         default_transpiler_lib: str,
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register the default transpiler library.
 
         Args:
             default_transpiler_lib (str): The name of the default transpiler library
                 to register.
+            allow_override (bool): When False, prevents overwriting existing
+              registrations. Defaults to False.
 
         Raises:
             DefaultTranspilerLibAlreadyRegisteredError: If a transpiler
-                with the same name is already registered.
+                with the same name is already registered and allow_override is False.
 
         """
-        if self._default_transpiler_lib is not None:
+        if not allow_override and self._default_transpiler_lib is not None:
             msg = (
                 f"Default transpiler_lib '{self._default_transpiler_lib}' "
                 "is already registered."

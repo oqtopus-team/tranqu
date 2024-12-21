@@ -73,6 +73,12 @@ class TestTranspilerManager:
         with pytest.raises(DefaultTranspilerLibAlreadyRegisteredError):
             manager.register_default_transpiler_lib("nop")
 
+    def test_register_default_transpiler_lib_already_registered_allow_override(self):
+        manager = TranspilerManager()
+
+        manager.register_default_transpiler_lib("nop")
+        manager.register_default_transpiler_lib("nop", allow_override=True)
+
     def test_register_transpiler_already_registered(self):
         manager = TranspilerManager()
 
