@@ -175,15 +175,21 @@ class Tranqu:
     def register_default_transpiler_lib(
         self,
         default_transpiler_lib: str,
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register the default transpiler library.
 
         Args:
             default_transpiler_lib (str): The name of the default transpiler library
                 to register.
+            allow_override (bool): When True, allows overwriting of existing default
+                transpiler lib.
 
         """
-        self._transpiler_manager.register_default_transpiler_lib(default_transpiler_lib)
+        self._transpiler_manager.register_default_transpiler_lib(
+            default_transpiler_lib, allow_override=allow_override
+        )
 
     def register_transpiler(
         self,
@@ -199,7 +205,7 @@ class Tranqu:
         Args:
             transpiler_lib (str): The name of the transpiler library.
             transpiler (Any): The transpiler to be registered.
-            allow_override: When True, allows overwriting of existing transpilers
+            allow_override (bool): When True, allows overwriting of existing transpilers
 
         """
         self._transpiler_manager.register_transpiler(
@@ -228,7 +234,7 @@ class Tranqu:
                 the converter to be registered.
             converter (ProgramConverter): The program converter to be registered
                 (subclass of ProgramConverter).
-            allow_override: When True, allows overwriting of existing converters.
+            allow_override (bool): When True, allows overwriting of existing converters.
                 Defaults to False.
 
         Examples:
