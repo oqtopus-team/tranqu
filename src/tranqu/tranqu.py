@@ -31,6 +31,7 @@ Example:
 Additionally, it is possible to incorporate user-defined transpilers.
 This module also provides a series of methods for this purpose.
 
+- `register_default_transpiler_lib()`: Registers the default transpiler library.
 - `register_transpiler()`: Registers a custom transpiler to Tranqu.
 - `register_program_converter()`: Registers a converter (`ProgramConverter`)
     for quantum circuit programs. When registering a custom transpiler,
@@ -131,8 +132,8 @@ class Tranqu:
     def transpile(  # noqa: PLR0913
         self,
         program: Any,  # noqa: ANN401
-        transpiler_lib: str,
         program_lib: str | None = None,
+        transpiler_lib: str | None = None,
         *,
         transpiler_options: dict[str, Any] | None = None,
         device: Any | None = None,  # noqa: ANN401
@@ -142,9 +143,9 @@ class Tranqu:
 
         Args:
             program (Any): The program to be transformed.
-            transpiler_lib (str): The name of the transpiler to be used.
             program_lib (str | None): The library or format of the program. If None,
                 will attempt to detect based on program type.
+            transpiler_lib (str | None): The name of the transpiler to be used.
             transpiler_options (dict[str, Any]): Options passed to the transpiler.
             device (Any | None): Information about the device on which
                 the program will be executed.
@@ -170,6 +171,19 @@ class Tranqu:
             device,
             device_lib,
         )
+
+    def register_default_transpiler_lib(
+        self,
+        default_transpiler_lib: str,
+    ) -> None:
+        """Register the default transpiler library.
+
+        Args:
+            default_transpiler_lib (str): The name of the default transpiler library
+                to register.
+
+        """
+        self._transpiler_manager.register_default_transpiler_lib(default_transpiler_lib)
 
     def register_transpiler(
         self,
