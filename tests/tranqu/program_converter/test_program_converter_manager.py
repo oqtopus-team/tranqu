@@ -58,3 +58,12 @@ class TestProgramConverterManager:
         converter = self.manager.fetch_converter("foo", "foo")
 
         assert isinstance(converter, PassThroughProgramConverter)
+
+    def test_register_converter_with_allow_override(self):
+        converter1 = TestFooBarConverter()
+        converter2 = BazToQuxConverter()
+
+        self.manager.register_converter("foo", "bar", converter1)
+        self.manager.register_converter("foo", "bar", converter2, allow_override=True)
+
+        assert self.manager.fetch_converter("foo", "bar") == converter2

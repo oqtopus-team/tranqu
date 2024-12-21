@@ -1,4 +1,9 @@
-from tranqu.device_type_manager import DeviceTypeManager
+import pytest
+
+from tranqu.device_type_manager import (
+    DeviceLibraryAlreadyRegisteredError,
+    DeviceTypeManager,
+)
 
 
 class DummyDevice:
@@ -45,3 +50,23 @@ class TestDeviceTypeManager:
 
         # The last registered library identifier is returned
         assert self.manager.detect_lib(device) == "another_dummy"
+
+    def test_register_type_raises_error_when_library_already_registered(self):
+        self.manager.register_type("dummy", DummyDevice)
+
+        with pytest.raises(
+            DeviceLibraryAlreadyRegisteredError,
+            match=(
+                "Library 'dummy' is already registered. "
+                "Use allow_override=True to force registration."
+            ),
+        ):
+            self.manager.register_type("dummy", DummyDevice)
+
+    def test_register_type_with_allow_override(self):
+        self.manager.register_type("dummy", DummyDevice)
+
+        self.manager.register_type("dummy", DummyDevice, allow_override=True)
+
+        device = DummyDevice()
+        assert self.manager.detect_lib(device) == "dummy"

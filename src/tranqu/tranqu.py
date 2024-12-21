@@ -175,6 +175,8 @@ class Tranqu:
         self,
         transpiler_lib: str,
         transpiler: Any,  # noqa: ANN401
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register a transpiler for optimizing quantum circuits.
 
@@ -183,15 +185,22 @@ class Tranqu:
         Args:
             transpiler_lib (str): The name of the transpiler library.
             transpiler (Any): The transpiler to be registered.
+            allow_override: When True, allows overwriting of existing transpilers
 
         """
-        self._transpiler_manager.register_transpiler(transpiler_lib, transpiler)
+        self._transpiler_manager.register_transpiler(
+            transpiler_lib,
+            transpiler,
+            allow_override=allow_override,
+        )
 
     def register_program_converter(
         self,
         from_program_lib: str,
         to_program_lib: str,
         converter: ProgramConverter,
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register a program converter.
 
@@ -205,6 +214,8 @@ class Tranqu:
                 the converter to be registered.
             converter (ProgramConverter): The program converter to be registered
                 (subclass of ProgramConverter).
+            allow_override: When True, allows overwriting of existing converters.
+                Defaults to False.
 
         Examples:
             To register a converter that transforms from "foo" to "bar", you can call:
@@ -218,6 +229,7 @@ class Tranqu:
             from_program_lib,
             to_program_lib,
             converter,
+            allow_override=allow_override,
         )
 
     def register_device_converter(
@@ -225,6 +237,8 @@ class Tranqu:
         from_device_lib: str,
         to_device_lib: str,
         converter: DeviceConverter,
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register a device converter.
 
@@ -238,6 +252,8 @@ class Tranqu:
                 the converter to be registered.
             converter (DeviceConverter): The device converter to be registered
                 (subclass of DeviceConverter).
+            allow_override (bool): When True, allows overwriting of existing converters.
+                Defaults to False.
 
         Examples:
             To register a converter that transforms from "foo" to "bar", you would call:
@@ -249,9 +265,16 @@ class Tranqu:
             from_device_lib,
             to_device_lib,
             converter,
+            allow_override=allow_override,
         )
 
-    def register_program_type(self, program_lib: str, program_type: type) -> None:
+    def register_program_type(
+        self,
+        program_lib: str,
+        program_type: type,
+        *,
+        allow_override: bool = False,
+    ) -> None:
         """Register a mapping between a program type and its library identifier.
 
         This method allows automatic detection of the program library based on the
@@ -261,15 +284,27 @@ class Tranqu:
             program_lib (str): The identifier for the program library
               (e.g., "qiskit", "tket")
             program_type (type): The type class to be associated with the library
+            allow_override (bool): When True, allows overwriting of existing type
+                registrations. Defaults to False.
 
         Examples:
             To register Qiskit's QuantumCircuit type:
                 tranqu.register_program_type("qiskit", QuantumCircuit)
 
         """
-        self._program_type_manager.register_type(program_lib, program_type)
+        self._program_type_manager.register_type(
+            program_lib,
+            program_type,
+            allow_override=allow_override,
+        )
 
-    def register_device_type(self, device_lib: str, device_type: type) -> None:
+    def register_device_type(
+        self,
+        device_lib: str,
+        device_type: type,
+        *,
+        allow_override: bool = False,
+    ) -> None:
         """Register a mapping between a device type and its library identifier.
 
         This method enables automatic detection of the device library based on
@@ -279,13 +314,19 @@ class Tranqu:
             device_lib (str): The identifier for the device library
               (e.g., "qiskit", "oqtopus")
             device_type (type): The type class to be associated with the library
+            allow_override (bool): When True, allows overwriting of existing type
+                registrations. Defaults to False.
 
         Examples:
             To register Qiskit's backend type:
                 tranqu.register_device_type("qiskit", BackendV2)
 
         """
-        self._device_type_manager.register_type(device_lib, device_type)
+        self._device_type_manager.register_type(
+            device_lib,
+            device_type,
+            allow_override=allow_override,
+        )
 
     def _register_builtin_program_converters(self) -> None:
         self.register_program_converter(

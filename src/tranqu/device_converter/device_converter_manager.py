@@ -78,6 +78,8 @@ class DeviceConverterManager:
         from_lib: str,
         to_lib: str,
         converter: DeviceConverter,
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register a converter between the specified devices.
 
@@ -85,15 +87,21 @@ class DeviceConverterManager:
             from_lib (str): The name of the source device
             to_lib (str): The name of the target device
             converter (DeviceConverter): The converter instance to register
+            allow_override (bool): When False, prevents overwriting existing
+              registrations. Defaults to False.
 
         Raises:
             DeviceConverterAlreadyRegisteredError:
                 Raises if trying to re-register an already registered converter
+                and allow_override is False.
 
         """
         key = (from_lib, to_lib)
-        if key in self._converters:
-            msg = f"Converter already registered for conversion from {from_lib} to {to_lib}."  # noqa: E501
+        if not allow_override and key in self._converters:
+            msg = (
+                f"Converter already registered for conversion from {from_lib} "
+                f"to {to_lib}."
+            )
             raise DeviceConverterAlreadyRegisteredError(msg)
 
         self._converters[key] = converter

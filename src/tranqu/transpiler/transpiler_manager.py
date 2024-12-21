@@ -29,19 +29,23 @@ class TranspilerManager:
         self,
         transpiler_lib: str,
         transpiler: Any,  # noqa: ANN401
+        *,
+        allow_override: bool = False,
     ) -> None:
         """Register a new transpiler.
 
         Args:
             transpiler_lib (str): The name of the transpiler library to register.
             transpiler (Any): An instance of the Transpiler to register.
+            allow_override (bool): When False, prevents overwriting existing
+              registrations. Defaults to False.
 
         Raises:
             TranspilerAlreadyRegisteredError: If a transpiler with the same name
-                is already registered.
+                is already registered and allow_override is False.
 
         """
-        if transpiler_lib in self._transpilers:
+        if not allow_override and transpiler_lib in self._transpilers:
             msg = f"Transpiler '{transpiler_lib}' is already registered."
             raise TranspilerAlreadyRegisteredError(msg)
 

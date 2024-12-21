@@ -1,4 +1,9 @@
-from tranqu.program_type_manager import ProgramTypeManager
+import pytest
+
+from tranqu.program_type_manager import (
+    ProgramLibraryAlreadyRegisteredError,
+    ProgramTypeManager,
+)
 
 
 class DummyProgram:
@@ -45,3 +50,18 @@ class TestProgramTypeManager:
 
         # The last registered library identifier is returned
         assert self.manager.detect_lib(program) == "another_dummy"
+
+    def test_register_type_raises_error_when_lib_already_registered(self):
+        self.manager.register_type("dummy", DummyProgram)
+
+        class AnotherProgram:
+            pass
+
+        with pytest.raises(
+            ProgramLibraryAlreadyRegisteredError,
+            match=(
+                "Library 'dummy' is already registered. "
+                "Use allow_override=True to force registration."
+            ),
+        ):
+            (self.manager.register_type("dummy", AnotherProgram),)
