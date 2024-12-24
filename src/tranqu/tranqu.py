@@ -87,6 +87,7 @@ from .device_converter import (
     DeviceConverterManager,
     OqtopusToOuquTpDeviceConverter,
     OqtoqusToQiskitDeviceConverter,
+    QiskitToOuquTpDeviceConverter,
 )
 from .device_type_manager import DeviceTypeManager
 from .program_converter import (
@@ -422,6 +423,11 @@ class Tranqu:
             "oqtopus",
             "ouqu-tp",
             OqtopusToOuquTpDeviceConverter(),
+        )
+        self.register_device_converter(  # 追加
+            "qiskit",
+            "ouqu-tp",
+            QiskitToOuquTpDeviceConverter(),
         )
 
     def _register_builtin_transpilers(self) -> None:
