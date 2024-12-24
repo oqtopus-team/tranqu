@@ -93,9 +93,11 @@ from .program_converter import (
     Openqasm3ToQiskitProgramConverter,
     Openqasm3ToTketProgramConverter,
     OuquTpToOpenqasm3ProgramConverter,
+    OuquTpToQiskitProgramConverter,
     ProgramConverter,
     ProgramConverterManager,
     QiskitToOpenqasm3ProgramConverter,
+    QiskitToOuquTpProgramConverter,
     QiskitToTketProgramConverter,
     TketToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
@@ -397,6 +399,16 @@ class Tranqu:
             "ouqu-tp",
             "openqasm3",
             OuquTpToOpenqasm3ProgramConverter(),
+        )
+        self.register_program_converter(
+            "qiskit",
+            "ouqu-tp",
+            QiskitToOuquTpProgramConverter(),
+        )
+        self.register_program_converter(
+            "ouqu-tp",
+            "qiskit",
+            OuquTpToQiskitProgramConverter(),
         )
 
     def _register_builtin_device_converters(self) -> None:

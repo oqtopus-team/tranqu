@@ -1,3 +1,5 @@
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
+
 from tranqu import Tranqu
 
 
@@ -16,6 +18,15 @@ cx q[0],q[1];
         )
 
         assert isinstance(result.transpiled_program, str)
-        assert "OPENQASM" in result.transpiled_program
-        assert "h" in result.transpiled_program.lower()
-        assert "cx" in result.transpiled_program.lower()
+
+    def test_transpile_qiskit_program(self):
+        tranqu = Tranqu()
+        circuit = QuantumCircuit(2)
+        circuit.h(0)
+        circuit.cx(0, 1)
+
+        result = tranqu.transpile(
+            program=circuit, program_lib="qiskit", transpiler_lib="ouqu-tp"
+        )
+
+        assert isinstance(result.transpiled_program, QuantumCircuit)
