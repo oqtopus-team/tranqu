@@ -5,6 +5,7 @@ from qiskit.qasm3 import loads  # type: ignore[import-untyped]
 
 from tranqu.transpile_result import TranspileResult
 
+from .qiskit_layout_mapper import QiskitLayoutMapper
 from .qiskit_stats_extractor import QiskitStatsExtractor
 from .transpiler import Transpiler
 
@@ -18,6 +19,7 @@ class OuquTpTranspiler(Transpiler):
     def __init__(self) -> None:
         self._ouqu_tp = OuquTp()
         self._qiskit_stats_extractor = QiskitStatsExtractor()
+        self._layout_mapper = QiskitLayoutMapper()
 
     def transpile(
         self,
@@ -52,4 +54,6 @@ class OuquTpTranspiler(Transpiler):
             ),
         }
 
-        return TranspileResult(transpile_response.qasm, stats, {})
+        mapping = self._layout_mapper.create_mapping_from_layout(transpiled_circuit)
+
+        return TranspileResult(transpile_response.qasm, stats, mapping)

@@ -58,6 +58,7 @@ cx q[0],q[1];
 
         assert isinstance(result.transpiled_program, str)
         assert result.stats != {}
+        assert result.virtual_physical_mapping != {}
 
     def test_transpile_qiskit_program(
         self, tranqu: Tranqu, simple_device: dict[str, Any]
@@ -76,6 +77,7 @@ cx q[0],q[1];
 
         assert isinstance(result.transpiled_program, QuantumCircuit)
         assert result.stats != {}
+        assert result.virtual_physical_mapping != {}
 
     def test_transpile_tket_program(
         self, tranqu: Tranqu, simple_device: dict[str, Any]
@@ -94,3 +96,4 @@ cx q[0],q[1];
 
         assert isinstance(result.transpiled_program, TketCircuit)
         assert result.stats != {}
+        assert result.virtual_physical_mapping != {}
