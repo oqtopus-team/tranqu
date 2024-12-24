@@ -2,6 +2,7 @@ from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 
 from tranqu.transpile_result import TranspileResult
 
+from .qiskit_stats_extractor import QiskitStatsExtractor
 from .transpiler import Transpiler
 
 
@@ -12,22 +13,11 @@ class BaseQiskitTranspiler(Transpiler):
     create a mapping of virtual qubits to physical qubits.
     """
 
+    def __init__(self) -> None:
+        self._stats_extractor = QiskitStatsExtractor()
+
     def _extract_stats_from(self, program: QuantumCircuit) -> dict[str, int]:
-        stats = {}
-        stats["n_qubits"] = program.num_qubits
-        stats["n_gates"] = len(program.data)
-        stats["n_gates_1q"] = self._count_single_qubit_gates(program)
-        stats["n_gates_2q"] = self._count_two_qubit_gates(program)
-        stats["depth"] = program.depth()
-        return stats
-
-    @staticmethod
-    def _count_single_qubit_gates(program: QuantumCircuit) -> int:
-        return sum(1 for instruction in program.data if len(instruction.qubits) == 1)
-
-    @staticmethod
-    def _count_two_qubit_gates(program: QuantumCircuit) -> int:
-        return sum(1 for instruction in program.data if len(instruction.qubits) == 2)  # noqa: PLR2004
+        return self._stats_extractor.extract_stats_from(program)
 
     @staticmethod
     def _create_mapping_from_layout(

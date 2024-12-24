@@ -1,9 +1,11 @@
 from ouqu_tp.servicers.ouqu_tp import (  # type: ignore[import-untyped]
     TranspilerService as OuquTp,  # type: ignore[import-untyped]
 )
+from qiskit.qasm3 import loads  # type: ignore[import-untyped]
 
 from tranqu.transpile_result import TranspileResult
 
+from .qiskit_stats_extractor import QiskitStatsExtractor
 from .transpiler import Transpiler
 
 
@@ -15,6 +17,7 @@ class OuquTpTranspiler(Transpiler):
 
     def __init__(self) -> None:
         self._ouqu_tp = OuquTp()
+        self._qiskit_stats_extractor = QiskitStatsExtractor()
 
     def transpile(
         self,
@@ -39,4 +42,14 @@ class OuquTpTranspiler(Transpiler):
         """
         transpile_response = self._ouqu_tp.transpile(program, device)
 
-        return TranspileResult(transpile_response.qasm, {}, {})
+        original_circuit = loads(program)
+        transpiled_circuit = loads(transpile_response.qasm)
+
+        stats = {
+            "before": self._qiskit_stats_extractor.extract_stats_from(original_circuit),
+            "after": self._qiskit_stats_extractor.extract_stats_from(
+                transpiled_circuit
+            ),
+        }
+
+        return TranspileResult(transpile_response.qasm, stats, {})

@@ -23,6 +23,7 @@ cx q[0],q[1];
         )
 
         assert isinstance(result.transpiled_program, str)
+        assert result.stats != {}
 
     def test_transpile_qiskit_program(self, tranqu: Tranqu):
         circuit = QuantumCircuit(2)
@@ -34,6 +35,7 @@ cx q[0],q[1];
         )
 
         assert isinstance(result.transpiled_program, QuantumCircuit)
+        assert result.stats != {}
 
     def test_transpile_tket_program(self, tranqu: Tranqu):
         circuit = TketCircuit(2)
@@ -45,3 +47,4 @@ cx q[0],q[1];
         )
 
         assert isinstance(result.transpiled_program, TketCircuit)
+        assert result.stats != {}
