@@ -5,6 +5,7 @@ from .device_converter_manager import (
     DeviceConverterManager,
     DeviceConverterNotFoundError,
 )
+from .oqtopus_to_ouqu_tp_device_converter import OqtopusToOuquTpDeviceConverter
 from .oqtopus_to_qiskit_device_converter import OqtoqusToQiskitDeviceConverter
 from .pass_through_device_converter import PassThroughDeviceConverter
 from .qiskit_device import QiskitDevice
@@ -15,6 +16,7 @@ __all__ = [
     "DeviceConverterError",
     "DeviceConverterManager",
     "DeviceConverterNotFoundError",
+    "OqtopusToOuquTpDeviceConverter",
     "OqtoqusToQiskitDeviceConverter",
     "PassThroughDeviceConverter",
     "QiskitDevice",

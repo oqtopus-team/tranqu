@@ -85,6 +85,7 @@ from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 from .device_converter import (
     DeviceConverter,
     DeviceConverterManager,
+    OqtopusToOuquTpDeviceConverter,
     OqtoqusToQiskitDeviceConverter,
 )
 from .device_type_manager import DeviceTypeManager
@@ -416,6 +417,11 @@ class Tranqu:
             "oqtopus",
             "qiskit",
             OqtoqusToQiskitDeviceConverter(),
+        )
+        self.register_device_converter(
+            "oqtopus",
+            "ouqu-tp",
+            OqtopusToOuquTpDeviceConverter(),
         )
 
     def _register_builtin_transpilers(self) -> None:
