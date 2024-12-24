@@ -1,0 +1,28 @@
+name: Setup Staq
+description: Install Staq quantum compiler
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+          build-essential \
+          cmake \
+          git \
+          bison \
+          flex \
+          libboost-all-dev
+      shell: bash
+
+    - name: Build and install Staq
+      run: |
+        cd /tmp
+        git clone https://github.com/softwareQinc/staq.git
+        cd staq
+        mkdir build
+        cd build
+        cmake ..
+        make -j8
+        sudo make install
+      shell: bash
