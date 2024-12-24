@@ -55,7 +55,6 @@ class TestOuquTpTranspiler:
     def qiskit_device(self) -> BackendV2:
         target = Target()
 
-        # 単一量子ビットゲートのプロパティ設定
         x_props = {
             (0,): InstructionProperties(duration=60e-9, error=0.01),
             (1,): InstructionProperties(duration=60e-9, error=0.02),
@@ -69,12 +68,10 @@ class TestOuquTpTranspiler:
             (1,): InstructionProperties(duration=0, error=0.02),
         }
 
-        # 2量子ビットゲートのプロパティ設定
         cx_props = {
             (0, 1): InstructionProperties(duration=100e-9, error=0.05),
         }
 
-        # ゲートの追加
         target.add_instruction(XGate(), x_props)
         target.add_instruction(SXGate(), sx_props)
         theta = Parameter("theta")
