@@ -18,6 +18,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Staq
+        uses: ./.github/actions/setup-staq
+
       - name: Setup Python ${{ matrix.python-version }} with uv
         uses: ./.github/actions/setup-python-with-uv
         with:

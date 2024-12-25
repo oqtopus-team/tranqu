@@ -1,19 +1,24 @@
-import copy
 from typing import Any
 
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
-from qiskit import transpile as qiskit_transpile
+from qiskit import transpile as qiskit_transpile  # type: ignore[import-untyped]
 
 from tranqu.transpile_result import TranspileResult
 
-from .base_qiskit_transpiler import BaseQiskitTranspiler
+from .qiskit_layout_mapper import QiskitLayoutMapper
+from .qiskit_stats_extractor import QiskitStatsExtractor
+from .transpiler import Transpiler
 
 
-class QiskitTranspiler(BaseQiskitTranspiler):
+class QiskitTranspiler(Transpiler):
     """Transpile quantum circuits using Qiskit.
 
     It optimizes quantum circuits using Qiskit's `transpile()` function.
     """
+
+    def __init__(self) -> None:
+        self._stats_extractor = QiskitStatsExtractor()
+        self._layout_mapper = QiskitLayoutMapper()
 
     def transpile(
         self,
@@ -36,9 +41,16 @@ class QiskitTranspiler(BaseQiskitTranspiler):
                 and the mapping of virtual qubits to physical qubits.
 
         """
-        _options = copy.deepcopy(options or {})
+        _options = options or {}
         if device is not None:
             _options["backend"] = device
 
         transpiled_program = qiskit_transpile(program, **_options)
-        return self._create_transpile_result(program, transpiled_program)
+
+        stats = {
+            "before": self._stats_extractor.extract_stats_from(program),
+            "after": self._stats_extractor.extract_stats_from(transpiled_program),
+        }
+        mapping = self._layout_mapper.create_mapping_from_layout(transpiled_program)
+
+        return TranspileResult(transpiled_program, stats, mapping)
