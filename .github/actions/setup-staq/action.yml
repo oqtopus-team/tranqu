@@ -4,7 +4,15 @@ description: Install Staq quantum compiler
 runs:
   using: composite
   steps:
+    - name: Cache apt packages
+      id: cache-apt
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-${{ hashFiles('.github/actions/setup-staq/action.yml') }}
+
     - name: Install dependencies
+      if: steps.cache-apt.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update && sudo apt-get install -y --no-install-recommends \
           build-essential \
@@ -15,7 +23,15 @@ runs:
           libboost-all-dev
       shell: bash
 
+    - name: Cache Staq build
+      id: cache-staq
+      uses: actions/cache@v4
+      with:
+        path: /usr/local/bin/staq
+        key: ${{ runner.os }}-staq-${{ hashFiles('.github/actions/setup-staq/action.yml') }}
+
     - name: Build and install Staq
+      if: steps.cache-staq.outputs.cache-hit != 'true'
       run: |
         cd /tmp
         git clone https://github.com/softwareQinc/staq.git
