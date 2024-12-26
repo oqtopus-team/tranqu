@@ -3,10 +3,6 @@ from typing import Any
 from .tranqu_error import TranquError
 
 
-class DeviceLibNotFoundError(TranquError):
-    """Error raised when device library cannot be detected."""
-
-
 class DeviceLibraryAlreadyRegisteredError(TranquError):
     """Raised when attempting to register a device library that already exists."""
 
@@ -42,8 +38,8 @@ class DeviceTypeManager:
 
         self._type_registry[device_type] = device_lib
 
-    def detect_lib(self, device: Any) -> str | None:  # noqa: ANN401
-        """Detect library based on device type.
+    def resolve_lib(self, device: Any) -> str | None:  # noqa: ANN401
+        """Resolve library based on device type.
 
         Args:
             device (Any): Device to inspect

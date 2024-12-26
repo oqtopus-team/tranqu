@@ -14,7 +14,7 @@ from tranqu.transpiler_dispatcher import (
     DeviceConversionPathNotFoundError,
     DeviceNotSpecifiedError,
     ProgramConversionPathNotFoundError,
-    ProgramLibNotFoundError,
+    ProgramLibResolutionError,
     ProgramNotSpecifiedError,
     TranspilerLibNotSpecifiedError,
 )
@@ -259,7 +259,7 @@ c[1] = measure $2;
         circuit = UnknownCircuit()
 
         with pytest.raises(
-            ProgramLibNotFoundError, match="Could not detect program library."
+            ProgramLibResolutionError, match="Could not resolve program library."
         ):
             tranqu.transpile(
                 circuit,
