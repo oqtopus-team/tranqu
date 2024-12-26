@@ -42,8 +42,8 @@ class ProgramTypeManager:
 
         self._type_registry[program_type] = program_lib
 
-    def detect_lib(self, program: Any) -> str | None:  # noqa: ANN401
-        """Detect the library identifier for a given program instance.
+    def resolve_lib(self, program: Any) -> str | None:  # noqa: ANN401
+        """Resolve the library identifier for a given program instance.
 
         Args:
             program (Any): Program instance to inspect

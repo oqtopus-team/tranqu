@@ -13,8 +13,8 @@ class TranspilerDispatcherError(TranquError):
     """Base class for errors related to the transpiler dispatcher."""
 
 
-class ProgramLibNotFoundError(TranquError):
-    """Error when program library cannot be detected."""
+class ProgramLibResolutionError(TranspilerDispatcherError):
+    """Error raised when program library cannot be resolved."""
 
 
 class ProgramNotSpecifiedError(TranspilerDispatcherError):
@@ -103,50 +103,22 @@ class TranspilerDispatcher:
 
         Raises:
             ProgramNotSpecifiedError: Raised when no program is specified.
-            ProgramLibNotFoundError: Raised when program library cannot be detected.
-            TranspilerLibNotSpecifiedError: Raised when no transpiler library
-                is specified.
-            DeviceNotSpecifiedError: Raised when a device library is specified
-                but no device is specified.
 
         """
         if program is None:
             msg = "No program specified. Please specify a valid quantum circuit."
             raise ProgramNotSpecifiedError(msg)
-        if transpiler_lib is None:
-            transpiler_lib = self._transpiler_manager.get_default_transpiler_lib()
-            if transpiler_lib is None:
-                msg = (
-                    "No transpiler library specified."
-                    " Please specify a transpiler to use."
-                )
-                raise TranspilerLibNotSpecifiedError(msg)
 
-        detected_program_lib = (
-            self._detect_program_lib(program) if program_lib is None else program_lib
-        )
-        if detected_program_lib is None:
-            msg = (
-                "Could not detect program library. Please either "
-                "specify program_lib or register the program type "
-                "using register_program_type()."
-            )
-            raise ProgramLibNotFoundError(msg)
-
-        detected_device_lib = (
-            self._detect_device_lib(device) if device_lib is None else device_lib
-        )
-        if detected_device_lib is not None and device is None:
-            msg = "Device library is specified but no device is specified."
-            raise DeviceNotSpecifiedError(msg)
-
-        transpiler = self._transpiler_manager.fetch_transpiler(transpiler_lib)
+        selected_transpiler_lib = self._select_transpiler_lib(transpiler_lib)
+        resolved_program_lib = self._resolve_program_lib(program, program_lib)
+        resolved_device_lib = self._resolve_device_lib(device, device_lib)
+        transpiler = self._transpiler_manager.fetch_transpiler(selected_transpiler_lib)
 
         converted_program = self._convert_program(
-            program, detected_program_lib, transpiler_lib
+            program, from_lib=resolved_program_lib, to_lib=selected_transpiler_lib
         )
         converted_device = self._convert_device(
-            device, detected_device_lib, transpiler_lib
+            device, from_lib=resolved_device_lib, to_lib=selected_transpiler_lib
         )
 
         transpile_result = transpiler.transpile(
@@ -157,62 +129,135 @@ class TranspilerDispatcher:
 
         transpile_result.transpiled_program = self._convert_program(
             transpile_result.transpiled_program,
-            transpiler_lib,
-            detected_program_lib,
+            from_lib=selected_transpiler_lib,
+            to_lib=resolved_program_lib,
         )
+
         return transpile_result
 
-    def _detect_program_lib(self, program: Any) -> str | None:  # noqa: ANN401
-        return self._program_type_manager.detect_lib(program)
+    def _select_transpiler_lib(self, transpiler_lib: str | None) -> str:
+        selected_lib = transpiler_lib
 
-    def _detect_device_lib(self, device: Any) -> str | None:  # noqa: ANN401
-        return self._device_type_manager.detect_lib(device)
+        if selected_lib is None:
+            selected_lib = self._transpiler_manager.get_default_transpiler_lib()
 
-    def _convert_program(self, program: Any, from_lib: str, to_lib: Any) -> Any:  # noqa: ANN401
-        if self._program_converter_manager.has_converter(from_lib, to_lib):
-            return self._program_converter_manager.fetch_converter(
-                from_lib,
-                to_lib,
-            ).convert(program)
+        if selected_lib is None:
+            msg = "No transpiler library specified. Please specify a transpiler to use."
+            raise TranspilerLibNotSpecifiedError(msg)
 
-        can_convert_to_qiskit = self._program_converter_manager.has_converter(
-            from_lib,
-            "qiskit",
-        )
-        can_convert_to_target = self._program_converter_manager.has_converter(
-            "qiskit",
-            to_lib,
-        )
-        if not (can_convert_to_qiskit and can_convert_to_target):
+        return selected_lib
+
+    def _resolve_program_lib(self, program: Any, program_lib: str | None) -> str:  # noqa: ANN401
+        if program_lib is None:
+            resolved_lib = self._program_type_manager.resolve_lib(program)
+        else:
+            resolved_lib = program_lib
+
+        if resolved_lib is None:
+            msg = (
+                "Could not resolve program library. Please either "
+                "specify program_lib or register the program type "
+                "using register_program_type()."
+            )
+            raise ProgramLibResolutionError(msg)
+
+        return resolved_lib
+
+    def _resolve_device_lib(
+        self,
+        device: Any | None,  # noqa: ANN401
+        device_lib: str | None,
+    ) -> str | None:
+        if device is None and device_lib is not None:
+            msg = "Device library is specified but no device is specified."
+            raise DeviceNotSpecifiedError(msg)
+
+        if device_lib is None:
+            resolved_lib = self._device_type_manager.resolve_lib(device)
+        else:
+            resolved_lib = device_lib
+
+        return resolved_lib
+
+    def _convert_program(self, program: Any, *, from_lib: str, to_lib: str) -> Any:  # noqa: ANN401
+        if self._can_convert_program_directly(from_lib=from_lib, to_lib=to_lib):
+            direct_converter = self._program_converter_manager.fetch_converter(
+                from_lib=from_lib,
+                to_lib=to_lib,
+            )
+            return direct_converter.convert(program)
+
+        if not self._can_convert_program_via_qiskit(from_lib=from_lib, to_lib=to_lib):
             msg = (
                 f"No ProgramConverter path found to convert from {from_lib} to {to_lib}"
             )
             raise ProgramConversionPathNotFoundError(msg)
 
-        return self._program_converter_manager.fetch_converter(
-            "qiskit",
-            to_lib,
-        ).convert(
-            self._program_converter_manager.fetch_converter(from_lib, "qiskit").convert(
-                program,
-            ),
+        to_qiskit_converter = self._program_converter_manager.fetch_converter(
+            from_lib, "qiskit"
         )
+        from_qiskit_converter = self._program_converter_manager.fetch_converter(
+            "qiskit", to_lib
+        )
+
+        qiskit_program = to_qiskit_converter.convert(program)
+        return from_qiskit_converter.convert(qiskit_program)
+
+    def _can_convert_program_directly(self, *, from_lib: str, to_lib: str) -> bool:
+        return self._program_converter_manager.has_converter(
+            from_lib=from_lib, to_lib=to_lib
+        )
+
+    def _can_convert_program_via_qiskit(self, *, from_lib: str, to_lib: str) -> bool:
+        can_convert_to_qiskit = self._program_converter_manager.has_converter(
+            from_lib=from_lib,
+            to_lib="qiskit",
+        )
+        can_convert_to_target = self._program_converter_manager.has_converter(
+            from_lib="qiskit",
+            to_lib=to_lib,
+        )
+        return can_convert_to_qiskit and can_convert_to_target
 
     def _convert_device(
         self,
         device: Any | None,  # noqa: ANN401
+        *,
         from_lib: str | None,
-        to_lib: Any,  # noqa: ANN401
+        to_lib: str,
     ) -> Any | None:  # noqa: ANN401
-        if device is None or from_lib is None:
+        if device is None:
+            return None
+
+        if from_lib is None:
             return device
 
-        if self._device_converter_manager.has_converter(from_lib, to_lib):
-            return self._device_converter_manager.fetch_converter(
+        if self._can_convert_device_directly(from_lib=from_lib, to_lib=to_lib):
+            direct_converter = self._device_converter_manager.fetch_converter(
                 from_lib,
                 to_lib,
-            ).convert(device)
+            )
+            return direct_converter.convert(device)
 
+        if not self._can_convert_device_via_qiskit(from_lib=from_lib, to_lib=to_lib):
+            msg = (
+                f"No DeviceConverter path found to convert from {from_lib} to {to_lib}"
+            )
+            raise DeviceConversionPathNotFoundError(msg)
+
+        to_qiskit_converter = self._device_converter_manager.fetch_converter(
+            from_lib, "qiskit"
+        )
+        from_qiskit_converter = self._device_converter_manager.fetch_converter(
+            "qiskit", to_lib
+        )
+        qiskit_device = to_qiskit_converter.convert(device)
+        return from_qiskit_converter.convert(qiskit_device)
+
+    def _can_convert_device_directly(self, *, from_lib: str, to_lib: str) -> bool:
+        return self._device_converter_manager.has_converter(from_lib, to_lib)
+
+    def _can_convert_device_via_qiskit(self, *, from_lib: str, to_lib: str) -> bool:
         can_convert_to_qiskit = self._device_converter_manager.has_converter(
             from_lib,
             "qiskit",
@@ -221,14 +266,5 @@ class TranspilerDispatcher:
             "qiskit",
             to_lib,
         )
-        if not (can_convert_to_qiskit and can_convert_to_target):
-            msg = (
-                f"No DeviceConverter path found to convert from {from_lib} to {to_lib}"
-            )
-            raise DeviceConversionPathNotFoundError(msg)
 
-        return self._device_converter_manager.fetch_converter("qiskit", to_lib).convert(
-            self._device_converter_manager.fetch_converter(from_lib, "qiskit").convert(
-                device,
-            ),
-        )
+        return can_convert_to_qiskit and can_convert_to_target
