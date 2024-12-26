@@ -8,6 +8,10 @@ from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit_ibm_runtime.fake_provider import FakeSantiagoV2
 
 from tranqu import Tranqu, __version__
+from tranqu.device_converter import (
+    OqtoqusToQiskitDeviceConverter,
+    QiskitToOuquTpDeviceConverter,
+)
 from tranqu.program_converter import ProgramConverter
 from tranqu.transpiler.transpiler_manager import TranspilerNotFoundError
 from tranqu.transpiler_dispatcher import (
@@ -176,7 +180,7 @@ c[1] = measure $2;
                 device_lib="custom",
             )
 
-    def test_detect_program_lib(self):
+    def test_resolve_program_lib(self):
         tranqu = Tranqu()
         circuit = QiskitCircuit(1)
 
@@ -187,7 +191,7 @@ c[1] = measure $2;
 
         assert isinstance(result.transpiled_program, QiskitCircuit)
 
-    def test_detect_program_lib_with_tket_circuit(self):
+    def test_resolve_program_lib_with_tket_circuit(self):
         tranqu = Tranqu()
         circuit = TketCircuit(1)
 
@@ -198,7 +202,7 @@ c[1] = measure $2;
 
         assert isinstance(result.transpiled_program, TketCircuit)
 
-    def test_detect_device_lib(self):
+    def test_resolve_device_lib(self):
         tranqu = Tranqu()
         device = FakeSantiagoV2()
 
@@ -281,3 +285,46 @@ c[1] = measure $2;
                 device=None,
                 device_lib="qiskit",
             )
+
+    def test_device_conversion_via_qiskit(self):
+        tranqu = Tranqu()
+
+        oqtopus_device = {
+            "name": "test_device",
+            "qubits": [
+                {
+                    "id": 0,
+                    "fidelity": 0.99,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+                {
+                    "id": 1,
+                    "fidelity": 0.98,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+            ],
+            "couplings": [
+                {
+                    "control": 0,
+                    "target": 1,
+                    "fidelity": 0.97,
+                    "gate_duration": {"cx": 300.0},
+                }
+            ],
+        }
+        tranqu._device_converter_manager._converters.clear()  # noqa: SLF001
+        tranqu.register_device_type("oqtopus", dict)
+        tranqu.register_device_converter(
+            "oqtopus", "qiskit", OqtoqusToQiskitDeviceConverter()
+        )
+        tranqu.register_device_converter(
+            "qiskit", "ouqu-tp", QiskitToOuquTpDeviceConverter()
+        )
+
+        result = tranqu.transpile(
+            TketCircuit(2),
+            transpiler_lib="ouqu-tp",
+            device=oqtopus_device,
+        )
+
+        assert isinstance(result.transpiled_program, TketCircuit)
