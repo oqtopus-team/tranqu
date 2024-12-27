@@ -1,7 +1,6 @@
-from typing import Any
-
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit import transpile as qiskit_transpile  # type: ignore[import-untyped]
+from qiskit.providers.backend import BackendV2  # type: ignore[import-untyped]
 
 from tranqu.transpile_result import TranspileResult
 
@@ -20,11 +19,22 @@ class QiskitTranspiler(Transpiler):
         self._stats_extractor = QiskitStatsExtractor()
         self._layout_mapper = QiskitLayoutMapper()
 
+    @property
+    def program_lib(self) -> str:
+        """Returns the program format that this transpiler handles.
+
+        Returns:
+            str: Always returns "qiskit" since
+              this transpiler handles Qiskit's QuantumCircuit.
+
+        """
+        return "qiskit"
+
     def transpile(
         self,
         program: QuantumCircuit,
         options: dict | None = None,
-        device: Any | None = None,  # noqa: ANN401
+        device: BackendV2 | None = None,
     ) -> TranspileResult:
         """Transpile the specified quantum circuit and return a TranspileResult.
 
@@ -32,7 +42,7 @@ class QiskitTranspiler(Transpiler):
             program (QuantumCircuit): The quantum circuit to transpile.
             options (dict, optional): Transpilation options.
                 Defaults to an empty dictionary.
-            device (Any, optional): The target device for transpilation.
+            device (BackendV2, optional): The target device for transpilation.
                 Defaults to None.
 
         Returns:

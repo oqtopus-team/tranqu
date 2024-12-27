@@ -21,6 +21,17 @@ class OuquTpTranspiler(Transpiler):
         self._qiskit_stats_extractor = QiskitStatsExtractor()
         self._layout_mapper = QiskitLayoutMapper()
 
+    @property
+    def program_lib(self) -> str:
+        """Returns the program format that this transpiler handles.
+
+        Returns:
+            str: Always returns "openqasm3" since
+              this transpiler handles OpenQASM3 format.
+
+        """
+        return "openqasm3"
+
     def transpile(
         self,
         program: str,

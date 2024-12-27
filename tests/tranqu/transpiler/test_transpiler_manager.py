@@ -25,6 +25,10 @@ h q;
 
 
 class NopTranspiler(Transpiler):
+    @property
+    def program_lib(self) -> str:
+        return "nop"
+
     def transpile(
         self,
         program: Any,

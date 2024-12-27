@@ -12,6 +12,16 @@ class Transpiler(ABC):
     The specific implementation of the transpiler must be defined in subclasses.
     """
 
+    @property
+    @abstractmethod
+    def program_lib(self) -> str:
+        """Returns the program format that the transpiler handles.
+
+        Returns:
+            str: A string representing the program format (e.g., "qiskit", "openqasm3")
+
+        """
+
     @abstractmethod
     def transpile(
         self,
