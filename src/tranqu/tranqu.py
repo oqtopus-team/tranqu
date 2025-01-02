@@ -400,15 +400,15 @@ class Tranqu:
             "ouqu-tp",
             OqtopusToOuquTpDeviceConverter(),
         )
-        self.register_device_converter(  # 追加
+        self.register_device_converter(
             "qiskit",
             "ouqu-tp",
             QiskitToOuquTpDeviceConverter(),
         )
 
     def _register_builtin_transpilers(self) -> None:
-        self.register_transpiler("qiskit", QiskitTranspiler())
-        self.register_transpiler("ouqu-tp", OuquTpTranspiler())
+        self.register_transpiler("qiskit", QiskitTranspiler(program_lib="qiskit"))
+        self.register_transpiler("ouqu-tp", OuquTpTranspiler(program_lib="openqasm3"))
 
     def _register_builtin_program_types(self) -> None:
         self.register_program_type("qiskit", QiskitCircuit)

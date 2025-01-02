@@ -25,10 +25,6 @@ h q;
 
 
 class NopTranspiler(Transpiler):
-    @property
-    def program_lib(self) -> str:
-        return "nop"
-
     def transpile(
         self,
         program: Any,
@@ -53,7 +49,7 @@ class TestTranspilerManager:
     def test_transpile_qasm3_with_nop_transpiler(self):
         tranqu = Tranqu()
 
-        tranqu.register_transpiler("nop", NopTranspiler())
+        tranqu.register_transpiler("nop", NopTranspiler(program_lib="nop"))
         tranqu.register_program_converter("nop", "openqasm3", NopToQasm3Converter())
         tranqu.register_program_converter("openqasm3", "nop", Qasm3ToNopConverter())
         result = tranqu.transpile(
@@ -86,10 +82,10 @@ class TestTranspilerManager:
     def test_register_transpiler_already_registered(self):
         manager = TranspilerManager()
 
-        manager.register_transpiler("nop", NopTranspiler())
+        manager.register_transpiler("nop", NopTranspiler(program_lib="nop"))
 
         with pytest.raises(TranspilerAlreadyRegisteredError):
-            manager.register_transpiler("nop", NopTranspiler())
+            manager.register_transpiler("nop", NopTranspiler(program_lib="nop"))
 
     def test_fetch_transpiler_not_found(self):
         manager = TranspilerManager()

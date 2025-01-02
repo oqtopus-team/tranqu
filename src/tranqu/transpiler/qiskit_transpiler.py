@@ -15,20 +15,10 @@ class QiskitTranspiler(Transpiler):
     It optimizes quantum circuits using Qiskit's `transpile()` function.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, program_lib: str) -> None:
+        super().__init__(program_lib)
         self._stats_extractor = QiskitStatsExtractor()
         self._layout_mapper = QiskitLayoutMapper()
-
-    @property
-    def program_lib(self) -> str:
-        """Returns the program format that this transpiler handles.
-
-        Returns:
-            str: Always returns "qiskit" since
-              this transpiler handles Qiskit's QuantumCircuit.
-
-        """
-        return "qiskit"
 
     def transpile(
         self,
