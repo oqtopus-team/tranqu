@@ -10,7 +10,24 @@ class Transpiler(ABC):
     This class provides an abstract method to transpile a given quantum circuit and
     return a `TranspileResult`.
     The specific implementation of the transpiler must be defined in subclasses.
+
+    Args:
+            program_lib (str): The program format that this transpiler handles.
+
     """
+
+    def __init__(self, program_lib: str) -> None:
+        self._program_lib = program_lib
+
+    @property
+    def program_lib(self) -> str:
+        """Returns the program format that this transpiler handles.
+
+        Returns:
+            str: The program format identifier (e.g., "qiskit", "tket").
+
+        """
+        return self._program_lib
 
     @abstractmethod
     def transpile(

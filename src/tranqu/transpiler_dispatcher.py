@@ -114,26 +114,31 @@ class TranspilerDispatcher:
         resolved_device_lib = self._resolve_device_lib(device, device_lib)
         transpiler = self._transpiler_manager.fetch_transpiler(selected_transpiler_lib)
 
-        converted_program = self._convert_program(
-            program, from_lib=resolved_program_lib, to_lib=selected_transpiler_lib
-        )
+        if resolved_program_lib != transpiler.program_lib:
+            converted_program = self._convert_program(
+                program, from_lib=resolved_program_lib, to_lib=transpiler.program_lib
+            )
+        else:
+            converted_program = program
+
         converted_device = self._convert_device(
             device, from_lib=resolved_device_lib, to_lib=selected_transpiler_lib
         )
 
-        transpile_result = transpiler.transpile(
+        result = transpiler.transpile(
             converted_program,
             transpiler_options,
             converted_device,
         )
 
-        transpile_result.transpiled_program = self._convert_program(
-            transpile_result.transpiled_program,
-            from_lib=selected_transpiler_lib,
-            to_lib=resolved_program_lib,
-        )
+        if transpiler.program_lib != resolved_program_lib:
+            result.transpiled_program = self._convert_program(
+                result.transpiled_program,
+                from_lib=transpiler.program_lib,
+                to_lib=resolved_program_lib,
+            )
 
-        return transpile_result
+        return result
 
     def _select_transpiler_lib(self, transpiler_lib: str | None) -> str:
         selected_lib = transpiler_lib
