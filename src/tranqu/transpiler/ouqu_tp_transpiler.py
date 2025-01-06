@@ -16,7 +16,8 @@ class OuquTpTranspiler(Transpiler):
     It optimizes quantum circuits using ouqu-tp's transpilation function.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, program_lib: str) -> None:
+        super().__init__(program_lib)
         self._ouqu_tp = OuquTp()
         self._qiskit_stats_extractor = QiskitStatsExtractor()
         self._layout_mapper = QiskitLayoutMapper()

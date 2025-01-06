@@ -1,3 +1,0 @@
-from .openqasm3_to_qiskit_program_converter import Openqasm3ToQiskitProgramConverter
-
-OuquTpToQiskitProgramConverter = Openqasm3ToQiskitProgramConverter

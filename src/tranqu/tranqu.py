@@ -91,15 +91,11 @@ from .device_converter import (
 )
 from .device_type_manager import DeviceTypeManager
 from .program_converter import (
-    Openqasm3ToOuquTpProgramConverter,
     Openqasm3ToQiskitProgramConverter,
     Openqasm3ToTketProgramConverter,
-    OuquTpToOpenqasm3ProgramConverter,
-    OuquTpToQiskitProgramConverter,
     ProgramConverter,
     ProgramConverterManager,
     QiskitToOpenqasm3ProgramConverter,
-    QiskitToOuquTpProgramConverter,
     QiskitToTketProgramConverter,
     TketToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
@@ -368,11 +364,6 @@ class Tranqu:
             Openqasm3ToTketProgramConverter(),
         )
         self.register_program_converter(
-            "openqasm3",
-            "ouqu-tp",
-            Openqasm3ToOuquTpProgramConverter(),
-        )
-        self.register_program_converter(
             "qiskit",
             "openqasm3",
             QiskitToOpenqasm3ProgramConverter(),
@@ -397,21 +388,6 @@ class Tranqu:
             "qiskit",
             TketToQiskitProgramConverter(),
         )
-        self.register_program_converter(
-            "ouqu-tp",
-            "openqasm3",
-            OuquTpToOpenqasm3ProgramConverter(),
-        )
-        self.register_program_converter(
-            "qiskit",
-            "ouqu-tp",
-            QiskitToOuquTpProgramConverter(),
-        )
-        self.register_program_converter(
-            "ouqu-tp",
-            "qiskit",
-            OuquTpToQiskitProgramConverter(),
-        )
 
     def _register_builtin_device_converters(self) -> None:
         self.register_device_converter(
@@ -424,15 +400,15 @@ class Tranqu:
             "ouqu-tp",
             OqtopusToOuquTpDeviceConverter(),
         )
-        self.register_device_converter(  # 追加
+        self.register_device_converter(
             "qiskit",
             "ouqu-tp",
             QiskitToOuquTpDeviceConverter(),
         )
 
     def _register_builtin_transpilers(self) -> None:
-        self.register_transpiler("qiskit", QiskitTranspiler())
-        self.register_transpiler("ouqu-tp", OuquTpTranspiler())
+        self.register_transpiler("qiskit", QiskitTranspiler(program_lib="qiskit"))
+        self.register_transpiler("ouqu-tp", OuquTpTranspiler(program_lib="openqasm3"))
 
     def _register_builtin_program_types(self) -> None:
         self.register_program_type("qiskit", QiskitCircuit)
