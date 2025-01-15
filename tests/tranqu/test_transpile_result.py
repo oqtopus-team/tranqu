@@ -2,7 +2,82 @@ import pytest
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 
 from tranqu import Tranqu
-from tranqu.transpile_result import TranspileResult
+from tranqu.transpile_result import NestedDictAccessor, TranspileResult
+
+
+@pytest.fixture
+def accessor():
+    inner_dict = {
+        "key1": "value1",
+        "key2": "value2",
+    }
+    return NestedDictAccessor(inner_dict)
+
+
+@pytest.fixture
+def accessor_with_stop_keys():
+    inner_dict = {
+        "qubit_mapping": {0: 1},
+        "bit_mapping": {2: 3},
+    }
+    return NestedDictAccessor(inner_dict, {"qubit_mapping"})
+
+
+class TestNestedDictAccessor:
+    def test__delitem__(self, accessor: NestedDictAccessor):
+        del accessor["key1"]
+        assert "key1" not in accessor
+
+        with pytest.raises(KeyError):
+            del accessor["key1"]
+
+    def test__getattr__(self, accessor: NestedDictAccessor):
+        assert accessor.key1 == "value1"
+
+        with pytest.raises(AttributeError):
+            accessor.key0  # noqa: B018
+
+    def test__getitem__(self, accessor: NestedDictAccessor):
+        assert accessor["key1"] == "value1"
+
+        with pytest.raises(KeyError):
+            accessor["key0"]
+
+    def test__getitem__with_stop_keys(
+        self, accessor_with_stop_keys: NestedDictAccessor
+    ):
+        assert type(accessor_with_stop_keys["qubit_mapping"]) is dict
+        assert type(accessor_with_stop_keys["bit_mapping"]) is NestedDictAccessor
+
+    def test__iter__(self, accessor: NestedDictAccessor):
+        key_list = []
+        for key in accessor:
+            key_list.append(key)  # noqa: PERF402
+
+        assert key_list == ["key1", "key2"]
+
+    def test__repr__(self, accessor: NestedDictAccessor):
+        assert repr(accessor) == "{'key1': 'value1', 'key2': 'value2'}"
+
+    def test__setitem__(self, accessor: NestedDictAccessor):
+        accessor["key3"] = "value3"
+        assert accessor["key3"] == "value3"
+
+    def test__str__(self, accessor: NestedDictAccessor):
+        assert str(accessor) == "{'key1': 'value1', 'key2': 'value2'}"
+
+    def test_items(self, accessor: NestedDictAccessor):
+        items = accessor.items()
+        assert items.mapping["key1"] == "value1"  # type: ignore[attr-defined]
+        assert items.mapping["key2"] == "value2"  # type: ignore[attr-defined]
+
+    def test_keys(self, accessor: NestedDictAccessor):
+        keys = accessor.keys()
+        assert {"key1", "key2"} == set(keys)
+
+    def test_values(self, accessor: NestedDictAccessor):
+        values = accessor.values()
+        assert {"value1", "value2"} == set(values)
 
 
 @pytest.fixture
