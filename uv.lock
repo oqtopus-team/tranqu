@@ -1169,7 +1169,7 @@ parser = [
 
 [[package]]
 name = "ouqu-tp"
-version = "1.0.1"
+version = "1.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -1178,9 +1178,9 @@ dependencies = [
     { name = "scipy" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/43/23fc24ca41b2e8f95effd718e8bad4fd80ac81d17c45e5cf45e165d9d059/ouqu_tp-1.0.1.tar.gz", hash = "sha256:36e7307be0e4085837df384b6885851c10f9e9d86f08423f638d925711a8e957", size = 22014 }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/43/8b6f2f3e02c1ebcd0cf3f271ccef898f1901ddca439fd989f4315faf2a6e/ouqu_tp-1.0.3.tar.gz", hash = "sha256:b2b83ccc105cdf5bf47647772cddb2ac39baa83edb68a3e4695bca4efed9e07f", size = 22273 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/dc/9a548cbae575bb9c9e7944dcfbfbc9fce4da1ed847f438520eadbd7a72b6/ouqu_tp-1.0.1-py3-none-any.whl", hash = "sha256:8085f9ea19ffea6aac9ec06e619c301ae0b2d52a24b2429900e9f476fa96ee22", size = 31097 },
+    { url = "https://files.pythonhosted.org/packages/d1/32/1b5d6f0deb8785dbc9ba773fff77d0d3723767af040e071277d5dca2fcee/ouqu_tp-1.0.3-py3-none-any.whl", hash = "sha256:7c38d943d5d135f7706359fa8a14e9c8502894f9bae7dddec99622b357c33b7f", size = 31303 },
 ]
 
 [[package]]
@@ -2358,7 +2358,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ouqu-tp", specifier = ">=1.0.1" },
+    { name = "ouqu-tp", specifier = ">=1.0.3" },
     { name = "pytket", specifier = ">=1.33.0,<2.0.0" },
     { name = "pytket-qiskit", specifier = ">=0.56.0" },
     { name = "qiskit", specifier = ">=1.0.0,<1.3.0" },
