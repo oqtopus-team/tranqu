@@ -14,6 +14,15 @@ def accessor():
     return NestedDictAccessor(inner_dict)
 
 
+@pytest.fixture
+def accessor_with_stop_keys():
+    inner_dict = {
+        "qubit_mapping": {0: 1},
+        "bit_mapping": {2: 3},
+    }
+    return NestedDictAccessor(inner_dict, {"qubit_mapping"})
+
+
 class TestNestedDictAccessor:
     def test__delitem__(self, accessor: NestedDictAccessor):
         del accessor["key1"]
@@ -33,6 +42,12 @@ class TestNestedDictAccessor:
 
         with pytest.raises(KeyError):
             accessor["key0"]
+
+    def test__getitem__with_stop_keys(
+        self, accessor_with_stop_keys: NestedDictAccessor
+    ):
+        assert type(accessor_with_stop_keys["qubit_mapping"]) is dict
+        assert type(accessor_with_stop_keys["bit_mapping"]) is NestedDictAccessor
 
     def test__iter__(self, accessor: NestedDictAccessor):
         key_list = []
