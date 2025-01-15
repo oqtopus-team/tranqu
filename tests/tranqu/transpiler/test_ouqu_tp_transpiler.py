@@ -52,6 +52,60 @@ class TestOuquTpTranspiler:
         }
 
     @pytest.fixture
+    def oqtopus_device(self) -> dict[str, Any]:
+        return {
+            "name": "oqtopus_device",
+            "qubits": [
+                {
+                    "id": 0,
+                    "fidelity": 0.90,
+                    "meas_error": {
+                        "prob_meas1_prep0": 0.01,
+                        "prob_meas0_prep1": 0.02,
+                    },
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+                {
+                    "id": 1,
+                    "meas_error": {
+                        "prob_meas1_prep0": 0.01,
+                        "prob_meas0_prep1": 0.02,
+                    },
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+                {
+                    "id": 2,
+                    "fidelity": 0.99,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+                {
+                    "id": 3,
+                    "fidelity": 0.99,
+                    "meas_error": {
+                        "prob_meas1_prep0": 0.01,
+                        "prob_meas0_prep1": 0.02,
+                    },
+                },
+            ],
+            "couplings": [
+                {
+                    "control": 0,
+                    "target": 2,
+                    "fidelity": 0.8,
+                    "gate_duration": {"cx": 60.0},
+                },
+                {"control": 0, "target": 1, "fidelity": 0.8},
+                {"control": 1, "target": 0, "fidelity": 0.25},
+                {"control": 1, "target": 3, "fidelity": 0.25},
+                {"control": 2, "target": 0, "fidelity": 0.25},
+                {"control": 2, "target": 3, "fidelity": 0.25},
+                {"control": 3, "target": 1, "fidelity": 0.9},
+                {"control": 3, "target": 2, "fidelity": 0.9},
+            ],
+            "timestamp": "2024-10-31 14:03:48.568126",
+        }
+
+    @pytest.fixture
     def qiskit_device(self) -> BackendV2:
         target = Target()
 
@@ -101,6 +155,35 @@ cx q[0],q[1];
         assert isinstance(result.transpiled_program, str)
         assert result.stats != {}
         assert result.virtual_physical_mapping != {}
+
+    def test_transpile_oqtopus_qasm3_program(
+        self, tranqu: Tranqu, oqtopus_device: dict[str, Any]
+    ):
+        program = """OPENQASM 3.0;
+include "stdgates.inc";
+qubit[2] q;
+bit[2] c;
+
+h q[0];
+cx q[0], q[1];
+
+c = measure q;
+"""
+        result = tranqu.transpile(
+            program=program,
+            program_lib="openqasm3",
+            transpiler_lib="ouqu-tp",
+            device=oqtopus_device,
+            device_lib="oqtopus",
+        )
+
+        assert isinstance(result.transpiled_program, str)
+        assert result.stats != {}
+        expect_virtual_physical_mapping = {
+            "qubit_mapping": {0: 3, 1: 1},
+            "bit_mapping": {0: 0, 1: 1},
+        }
+        assert dict(result.virtual_physical_mapping) == expect_virtual_physical_mapping
 
     def test_transpile_qiskit_program(
         self, tranqu: Tranqu, simple_device: dict[str, Any]
