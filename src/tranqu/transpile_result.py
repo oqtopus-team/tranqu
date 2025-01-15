@@ -51,7 +51,7 @@ qubits and classical bits:
 
 """
 
-from collections.abc import Iterator
+from collections.abc import ItemsView, Iterator, KeysView, ValuesView
 from typing import Any
 
 
@@ -76,6 +76,22 @@ class NestedDictAccessor:
     def __init__(self, d: dict, stop_keys: set[str] | None = None) -> None:
         self._d = d
         self._stop_keys = stop_keys
+
+    def __delitem__(self, key: str) -> None:
+        """Delete the key via subscript (e.g., del obj[key]).
+
+        Args:
+            key (str): The key to delete.
+
+        Raises:
+            KeyError: If the key is not found in the dictionary.
+
+        """
+        if key in self._d:
+            del self._d[key]
+        else:
+            msg = f"Key not found: {key}"
+            raise KeyError(msg)
 
     def __getattr__(self, item: str) -> Any:  # noqa: ANN401
         """Retrieve an attribute from the nested dictionary.
@@ -103,6 +119,41 @@ class NestedDictAccessor:
         msg = f"No such attribute: {item}"
         raise AttributeError(msg)
 
+    def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+        """Retrieve an item via subscript (e.g., obj[key]).
+
+        Args:
+            key (str): The key to retrieve.
+
+        Returns:
+            Any: The value associated with the attribute name. If the value is a
+            dictionary and the attribute name is not in the stop keys, it returns
+            a NestedDictAccessor for further nested access.
+
+        Raises:
+            KeyError: If the key is not found in the dictionary.
+
+        """
+        if key in self._d:
+            value = self._d[key]
+            if isinstance(value, dict) and (
+                self._stop_keys is None or key not in self._stop_keys
+            ):
+                return NestedDictAccessor(value, self._stop_keys)
+            return value
+
+        msg = f"Key not found: {key}"
+        raise KeyError(msg)
+
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the keys of the internal dictionary.
+
+        Returns:
+            Iterator: An iterator over the keys of the dictionary.
+
+        """
+        return iter(self._d)
+
     def __repr__(self) -> str:
         """Return a string representation of the NestedDictAccessor.
 
@@ -112,6 +163,16 @@ class NestedDictAccessor:
         """
         return repr(self._d)
 
+    def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
+        """Set the key and the value via subscript (e.g., obj[key] = value).
+
+        Args:
+            key (str): The key to set.
+            value (Any): The value to set.
+
+        """
+        self._d[key] = value
+
     def __str__(self) -> str:
         """Return a string representation of the NestedDictAccessor.
 
@@ -120,6 +181,33 @@ class NestedDictAccessor:
 
         """
         return str(self._d)
+
+    def items(self) -> ItemsView[Any, Any]:
+        """Return an iterator over the (key, value) pairs of the dictionary.
+
+        Returns:
+            Iterator: A view over (key, value) pairs.
+
+        """
+        return self._d.items()
+
+    def keys(self) -> KeysView[Any]:
+        """Return an iterator over the keys of the dictionary.
+
+        Returns:
+            KeysView[Any]: A view over the keys.
+
+        """
+        return self._d.keys()
+
+    def values(self) -> ValuesView[Any]:
+        """Return an iterator over the values of the dictionary.
+
+        Returns:
+            ValuesView[Any]: A view over the values.
+
+        """
+        return self._d.values()
 
 
 class TranspileResult:
