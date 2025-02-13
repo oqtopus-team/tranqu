@@ -10,7 +10,7 @@ class TestOqtoqusToQiskitDeviceConverter:
 
     def test_convert_valid_device(self):
         oqtopus_device = {
-            "name": "local_device",
+            "device_id": "local_device",
             "qubits": [
                 {
                     "id": 0,
@@ -76,7 +76,7 @@ class TestOqtoqusToQiskitDeviceConverter:
 
     def test_convert_invalid_device_no_qubits(self):
         oqtopus_device = {
-            "name": "local_device",
+            "device_id": "local_device",
             "couplings": [],
         }
 
@@ -85,7 +85,7 @@ class TestOqtoqusToQiskitDeviceConverter:
 
     def test_convert_invalid_device_no_couplings(self):
         oqtopus_device = {
-            "name": "local_device",
+            "device_id": "local_device",
             "qubits": [],
         }
 
@@ -94,7 +94,7 @@ class TestOqtoqusToQiskitDeviceConverter:
 
     def test_convert_empty_device(self):
         oqtopus_device = {
-            "name": "local_device",
+            "device_id": "local_device",
             "qubits": [],
             "couplings": [],
         }
