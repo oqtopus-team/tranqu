@@ -34,10 +34,10 @@ class OqtoqusToQiskitDeviceConverter(DeviceConverter):
             DeviceConverterError: If the conversion fails.
 
         """
-        if "name" in device:
-            name = device["name"]
+        if "device_id" in device:
+            device_id = device["device_id"]
         else:
-            msg = "The device information is missing the key 'name'."
+            msg = "The device information is missing the key 'device_id'."
             raise DeviceConverterError(msg)
 
         if "qubits" not in device:
@@ -50,7 +50,7 @@ class OqtoqusToQiskitDeviceConverter(DeviceConverter):
 
         target = self._convert_oqtopus_device_to_qiskit_target(device)
 
-        return QiskitDevice(name, target)
+        return QiskitDevice(device_id, target)
 
     @staticmethod
     def _convert_oqtopus_device_to_qiskit_target(oqtopus_device: dict) -> Target:  # noqa: PLR0914

@@ -89,7 +89,7 @@ c[0] = measure q[0];
 c[1] = measure q[1];
 """
             oqtopus_device = {
-                "name": "local_device",
+                "device_id": "local_device",
                 "qubits": [
                     {
                         "id": 0,
@@ -190,7 +190,7 @@ c[1] = measure $2;
 
     def test_device_conversion_via_qiskit(self, tranqu: Tranqu):
         oqtopus_device = {
-            "name": "test_device",
+            "device_id": "test_device",
             "qubits": [
                 {
                     "id": 0,
@@ -240,7 +240,7 @@ c[1] = measure $2;
 
     def test_device_conversion_path_not_found(self, tranqu: Tranqu):
         circuit = QiskitCircuit(2)
-        device = {"name": "custom_device", "qubits": [], "couplings": []}
+        device = {"device_id": "custom_device", "qubits": [], "couplings": []}
 
         with pytest.raises(
             DeviceConversionPathNotFoundError,
