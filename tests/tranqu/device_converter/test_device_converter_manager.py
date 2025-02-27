@@ -32,7 +32,7 @@ class TestDeviceConverterManager:
 
         with pytest.raises(
             DeviceConverterAlreadyRegisteredError,
-            match="Converter already registered for conversion from lib1 to lib2.",
+            match=r"Converter already registered for conversion from lib1 to lib2\.",
         ):
             self.manager.register_converter("lib1", "lib2", converter)
 
@@ -58,6 +58,6 @@ class TestDeviceConverterManager:
     def test_fetch_converter_raises_error_when_not_found(self):
         with pytest.raises(
             DeviceConverterNotFoundError,
-            match="Converter not found for conversion from lib1 to lib2.",
+            match=r"Converter not found for conversion from lib1 to lib2\.",
         ):
             self.manager.fetch_converter("lib1", "lib2")

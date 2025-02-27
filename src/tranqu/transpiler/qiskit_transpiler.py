@@ -41,11 +41,11 @@ class QiskitTranspiler(Transpiler):
                 and the mapping of virtual qubits to physical qubits.
 
         """
-        _options = options or {}
+        options_dict = options or {}
         if device is not None:
-            _options["backend"] = device
+            options_dict["backend"] = device
 
-        transpiled_program = qiskit_transpile(program, **_options)
+        transpiled_program = qiskit_transpile(program, **options_dict)
 
         stats = {
             "before": self._stats_extractor.extract_stats_from(program),

@@ -65,8 +65,8 @@ class TestProgramTypeManager:
         with pytest.raises(
             ProgramLibraryAlreadyRegisteredError,
             match=(
-                "Library 'dummy' is already registered. "
-                "Use allow_override=True to force registration."
+                r"Library 'dummy' is already registered\. "
+                r"Use allow_override=True to force registration\."
             ),
         ):
             manager.register_type("dummy", AnotherProgram)
