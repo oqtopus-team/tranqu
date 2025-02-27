@@ -48,7 +48,7 @@ class TestProgramConverterManager:
 
         with pytest.raises(
             ProgramConverterAlreadyRegisteredError,
-            match="Converter already registered for conversion from foo to bar.",
+            match=r"Converter already registered for conversion from foo to bar\.",
         ):
             self.manager.register_converter("foo", "bar", TestFooBarConverter)
 

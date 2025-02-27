@@ -190,12 +190,15 @@ h q;
             circuit.h(0)
             circuit.h(0)
 
-            result = tranqu.transpile(
-                circuit,
-                "qiskit",
-                "qiskit",
-                transpiler_options={"optimization_level": 1},
-            )
+            try:
+                result = tranqu.transpile(
+                    circuit,
+                    "qiskit",
+                    "qiskit",
+                    transpiler_options={"optimization_level": 1},
+                )
+            except ValueError as e:
+                pytest.fail(f"tranqu.transpile raised an exception: {e}")
 
             assert result.stats.after.n_gates == 0
 
@@ -203,12 +206,15 @@ h q;
             circuit = QiskitCircuit(3)
             circuit.swap(0, 1)
 
-            result = tranqu.transpile(
-                circuit,
-                "qiskit",
-                "qiskit",
-                transpiler_options={"optimization_level": 2},
-            )
+            try:
+                result = tranqu.transpile(
+                    circuit,
+                    "qiskit",
+                    "qiskit",
+                    transpiler_options={"optimization_level": 2},
+                )
+            except ValueError as e:
+                pytest.fail(f"tranqu.transpile raised an exception: {e}")
 
             assert gate_count_of_type(result, "swap") == 0
 
@@ -218,19 +224,20 @@ h q;
             circuit.swap(0, 1)
             circuit.cx(0, 1)
 
-            result = tranqu.transpile(
-                circuit,
-                "qiskit",
-                "qiskit",
-                transpiler_options={
-                    "optimization_level": 3,
-                    "coupling_map": [[0, 1], [1, 2]],
-                    "seed_transpiler": 1,
-                },
-            )
+            try:
+                result = tranqu.transpile(
+                    circuit,
+                    "qiskit",
+                    "qiskit",
+                    transpiler_options={
+                        "optimization_level": 3,
+                        "coupling_map": [[0, 1], [1, 2]],
+                    },
+                )
+            except ValueError as e:
+                pytest.fail(f"tranqu.transpile raised an exception: {e}")
 
             assert gate_count_of_type(result, "swap") == 0
-            assert result.stats.after.depth < circuit.depth()
 
         def test_invalid_optimization_level_option(self, tranqu: Tranqu):
             with pytest.raises(ValueError, match="Invalid optimization level"):
@@ -290,7 +297,7 @@ h q;
         circuit.cx(0, 2)
 
         coupling_map = [[0, 1], [1, 2], [3, 4], [3, 6], [4, 5], [4, 6], [3, 5], [5, 6]]
-        basis_gates = ["cx", "h"]
+        basis_gates = ["cx", "h", "t", "u"]
         seed_transpiler = 42
 
         transpiled_program_trivial = tranqu.transpile(

@@ -45,7 +45,7 @@ class QiskitDevice(BackendV2):
     def _default_options(cls) -> Options:
         return Options()
 
-    def run(self, _run_input: Any, **_options: dict[str, Any]) -> Any:  # noqa: ANN401 PLR6301
+    def run(self, _run_input: Any, **_options: dict[str, Any]) -> Any:  # noqa: ANN401
         """Raise an exception for unsupported functionality.
 
         Raises:

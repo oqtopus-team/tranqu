@@ -288,7 +288,7 @@ c[1] = measure $2;
     def test_program_not_specified(self, tranqu: Tranqu):
         with pytest.raises(
             ProgramNotSpecifiedError,
-            match="No program specified.",
+            match=r"No program specified\.",
         ):
             tranqu.transpile(
                 program=None,
@@ -300,7 +300,7 @@ c[1] = measure $2;
 
         with pytest.raises(
             TranspilerLibNotSpecifiedError,
-            match="No transpiler library specified.",
+            match=r"No transpiler library specified\.",
         ):
             tranqu.transpile(
                 circuit,
@@ -328,7 +328,7 @@ c[1] = measure $2;
         circuit = UnknownCircuit()
 
         with pytest.raises(
-            ProgramLibResolutionError, match="Could not resolve program library."
+            ProgramLibResolutionError, match=r"Could not resolve program library\."
         ):
             tranqu.transpile(
                 circuit,
@@ -340,7 +340,7 @@ c[1] = measure $2;
 
         with pytest.raises(
             DeviceNotSpecifiedError,
-            match="Device library is specified but no device is specified.",
+            match=r"Device library is specified but no device is specified\.",
         ):
             tranqu.transpile(
                 circuit,

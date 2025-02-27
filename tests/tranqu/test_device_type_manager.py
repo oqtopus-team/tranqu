@@ -66,8 +66,8 @@ class TestDeviceTypeManager:
         with pytest.raises(
             DeviceLibraryAlreadyRegisteredError,
             match=(
-                "Library 'dummy' is already registered. "
-                "Use allow_override=True to force registration."
+                r"Library 'dummy' is already registered\. "
+                r"Use allow_override=True to force registration\."
             ),
         ):
             device_manager.register_type("dummy", DummyDevice)
