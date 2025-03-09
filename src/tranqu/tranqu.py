@@ -99,6 +99,8 @@ from .program_converter import (
     QiskitToTketProgramConverter,
     TketToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
+    QiskitToQuripartsProgramConverter,
+    QuripartsToQiskitProgramConverter,
 )
 from .program_type_manager import ProgramTypeManager
 from .transpiler import OuquTpTranspiler, QiskitTranspiler, TranspilerManager
@@ -387,6 +389,16 @@ class Tranqu:
             "tket",
             "qiskit",
             TketToQiskitProgramConverter(),
+        )
+        self.register_program_converter(
+            "qiskit",
+            "quri-parts",
+            QiskitToQuripartsProgramConverter(),
+        )
+        self.register_program_converter(
+            "quri-parts",
+            "qiskit",
+            QuripartsToQiskitProgramConverter(),
         )
 
     def _register_builtin_device_converters(self) -> None:

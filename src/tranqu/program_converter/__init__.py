@@ -11,6 +11,9 @@ from .qiskit_to_openqasm3_program_converter import QiskitToOpenqasm3ProgramConve
 from .qiskit_to_tket_program_converter import QiskitToTketProgramConverter
 from .tket_to_openqasm3_program_converter import TketToOpenqasm3ProgramConverter
 from .tket_to_qiskit_program_converter import TketToQiskitProgramConverter
+from .quri_parts_to_qiskit_program_converter import QuripartsToQiskitProgramConverter
+from .qiskit_to_quri_parts_program_converter import QiskitToQuripartsProgramConverter
+
 
 __all__ = [
     "Openqasm3ToQiskitProgramConverter",
@@ -24,4 +27,6 @@ __all__ = [
     "QiskitToTketProgramConverter",
     "TketToOpenqasm3ProgramConverter",
     "TketToQiskitProgramConverter",
+    "QuripartsToQiskitProgramConverter",
+    "QiskitToQuripartsProgramConverter"
 ]
