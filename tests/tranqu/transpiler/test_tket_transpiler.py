@@ -10,15 +10,61 @@ from pytket.backends.backend import (  # type: ignore[attr-defined]
     ResultHandle,
 )
 from pytket.circuit import OpType  # type: ignore[attr-defined]
-from qiskit_ibm_runtime.fake_provider import (  # type: ignore[import-untyped]
-    FakeSantiagoV2,
-)
 
 from tranqu import Tranqu
 from tranqu.program_converter import (
     Openqasm3ToTketProgramConverter,
 )
 from tranqu.transpiler import TketTranspiler
+
+
+class TestBackend(Backend):
+    _ERROR_MESSAGE = "This backend is for testing only"
+
+    def __init__(self) -> None:
+        self._architecture = Architecture([(0, 1)])
+        self._backend_info = BackendInfo(
+            name="test_device",
+            device_name="test_device",
+            architecture=self._architecture,
+            version="1.0.0",
+            gate_set={OpType.CX},
+        )
+
+    @property
+    def backend_info(self) -> BackendInfo:
+        return self._backend_info
+
+    @property
+    def required_predicates(self) -> NoReturn:
+        raise NotImplementedError(self._ERROR_MESSAGE)
+
+    def rebase_pass(self) -> NoReturn:
+        raise NotImplementedError(self._ERROR_MESSAGE)
+
+    def default_compilation_pass(
+        self, optimisation_level: int | None = None
+    ) -> NoReturn:
+        raise NotImplementedError(self._ERROR_MESSAGE)
+
+    def process_circuits(
+        self,
+        circuits: Sequence[Circuit],
+        n_shots: int | Sequence[int | None] | None = None,
+        valid_check: bool = True,  # noqa: FBT001, FBT002
+        **kwargs: Any,
+    ) -> NoReturn:
+        raise NotImplementedError(self._ERROR_MESSAGE)
+
+    def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:
+        raise NotImplementedError(self._ERROR_MESSAGE)
+
+    @property
+    def _result_id_type(self) -> tuple[type[str]]:
+        return (str,)
+
+    def circuit_status(self, handle: ResultHandle) -> CircuitStatus:
+        raise NotImplementedError(self._ERROR_MESSAGE)
 
 
 def test_tranqu_optimizes_hadamard_identity() -> None:
@@ -75,8 +121,7 @@ def test_tranqu_respects_device_connectivity() -> None:
         qubit[2] q;
         cx q[1], q[0];
     """
-    # FakeSantiagoV2は0→1方向のCNOTのみをサポート
-    device = FakeSantiagoV2()
+    device = TestBackend()
     tranqu = Tranqu()
 
     result = tranqu.transpile(
@@ -85,7 +130,7 @@ def test_tranqu_respects_device_connectivity() -> None:
         transpiler_lib="tket",
         transpiler_options={"optimization_level": 2},
         device=device,
-        device_lib="qiskit",
+        device_lib="tket",
     )
 
     transpiled_circuit = result.transpiled_program
@@ -103,54 +148,6 @@ def test_tket_transpiler_respects_device_connectivity() -> None:
     transpiler = TketTranspiler("tket")
     converter = Openqasm3ToTketProgramConverter()
     circuit = converter.convert(input_qasm)
-
-    class TestBackend(Backend):
-        _ERROR_MESSAGE = "This backend is for testing only"
-
-        def __init__(self) -> None:
-            self._architecture = Architecture([(0, 1)])
-            self._backend_info = BackendInfo(
-                name="test_device",
-                device_name="test_device",
-                architecture=self._architecture,
-                version="1.0.0",
-                gate_set={OpType.CX},
-            )
-
-        @property
-        def backend_info(self) -> BackendInfo:
-            return self._backend_info
-
-        @property
-        def required_predicates(self) -> NoReturn:
-            raise NotImplementedError(self._ERROR_MESSAGE)
-
-        def rebase_pass(self) -> NoReturn:
-            raise NotImplementedError(self._ERROR_MESSAGE)
-
-        def default_compilation_pass(
-            self, optimisation_level: int | None = None
-        ) -> NoReturn:
-            raise NotImplementedError(self._ERROR_MESSAGE)
-
-        def process_circuits(
-            self,
-            circuits: Sequence[Circuit],
-            n_shots: int | Sequence[int | None] | None = None,
-            valid_check: bool = True,  # noqa: FBT001, FBT002
-            **kwargs: Any,
-        ) -> NoReturn:
-            raise NotImplementedError(self._ERROR_MESSAGE)
-
-        def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:
-            raise NotImplementedError(self._ERROR_MESSAGE)
-
-        @property
-        def _result_id_type(self) -> tuple[type[str]]:
-            return (str,)
-
-        def circuit_status(self, handle: ResultHandle) -> CircuitStatus:
-            raise NotImplementedError(self._ERROR_MESSAGE)
 
     device = TestBackend()
     result = transpiler.transpile(
