@@ -1,6 +1,12 @@
-from pytket import Circuit  # type: ignore[import-untyped]
-from pytket.architecture import Architecture  # type: ignore[import-untyped]
-from pytket.passes import (  # type: ignore[import-untyped]
+from typing import Any
+
+from pytket import Circuit  # type: ignore[attr-defined]
+from pytket.architecture import (  # type: ignore[attr-defined]
+    Architecture,
+    FullyConnected,
+)
+from pytket.backends import Backend  # type: ignore[attr-defined]
+from pytket.passes import (  # type: ignore[attr-defined]
     AASRouting,
     CliffordSimp,
     CNotSynthType,
@@ -43,59 +49,56 @@ class TketTranspiler(Transpiler):
     def transpile(
         self,
         program: Circuit,
-        options: dict | None = None,
-        device: Architecture | None = None,  # type: ignore[reportGeneralTypeIssues]
+        options: dict[str, Any] | None = None,
+        device: Backend | None = None,
     ) -> TranspileResult:
-        """Transpile the specified quantum circuit and return a TranspileResult.
+        """Transpile the program using tket.
 
         Args:
-            program (Circuit): The quantum circuit to transpile.
-            options (dict, optional): Transpilation options.
-                - optimization_level (int): Optimization level (0-3).
-                    - 0: Basic rebase only
-                    - 1: Basic synthesis
-                    - 2: Full optimization with Clifford simplification
-                    - 3: Advanced optimization with extended gate set
-                Defaults to 1.
-            device (Architecture, optional): The target device architecture.
-                Defaults to None.
+            program (Circuit): Program to transpile.
+            options (dict[str, Any] | None): Options for transpilation.
+            device (Backend | None): Device information.
 
         Returns:
-            TranspileResult: An object containing the transpilation result,
-                including the transpiled quantum circuit, statistics,
-                and the mapping of virtual qubits to physical qubits.
-
-        Raises:
-            ValueError: If optimization_level is not an integer between 0 and 3.
+            TranspileResult: Result of transpilation.
 
         """
-        # Create a copy of the circuit for transpilation
-        transpiled_program = program.copy()
+        if options is None:
+            options = {}
 
-        # Get optimization level from options
-        opt_level = (options or {}).get("optimization_level", 1)
-        if not isinstance(opt_level, int) or opt_level not in range(4):
-            raise ValueError(self.INVALID_OPT_LEVEL)
+        optimization_level = options.get("optimization_level", self.OPT_LEVEL_SYNTHESIS)
 
-        # Create optimization pass based on options and device
-        optimization_pass = self._create_optimization_pass(opt_level, device)
+        # Create a copy of the program to avoid modifying the original
+        program_copy = program.copy()
+
+        # Get the architecture from the device if provided
+        architecture = None
+        if device is not None and device.backend_info is not None:
+            architecture = device.backend_info.architecture
 
         # Apply optimization passes
-        optimization_pass.apply(transpiled_program)
+        if optimization_level >= self.OPT_LEVEL_SYNTHESIS:
+            # Create optimization pass based on options and device
+            optimization_pass = self._create_optimization_pass(
+                optimization_level, architecture
+            )
+
+            # Apply optimization passes
+            optimization_pass.apply(program_copy)
 
         # Extract statistics
         stats = {
             "before": self._extract_stats_from(program),
-            "after": self._extract_stats_from(transpiled_program),
+            "after": self._extract_stats_from(program_copy),
         }
 
         # Create mapping
         mapping = {
-            "qubit_mapping": self._create_qubit_mapping(transpiled_program),
-            "bit_mapping": self._create_bit_mapping(transpiled_program),
+            "qubit_mapping": self._create_qubit_mapping(program_copy),
+            "bit_mapping": self._create_bit_mapping(program_copy),
         }
 
-        return TranspileResult(transpiled_program, stats, mapping)
+        return TranspileResult(program_copy, stats, mapping)
 
     @staticmethod
     def _extract_stats_from(circuit: Circuit) -> dict[str, int]:
@@ -167,13 +170,16 @@ class TketTranspiler(Transpiler):
         return bit_mapping
 
     def _create_optimization_pass(
-        self, optimization_level: int, device: Architecture | None = None
+        self,
+        optimization_level: int,
+        architecture: Architecture | FullyConnected | None = None,
     ) -> SequencePass:
         """Create optimization pass for the transpiler.
 
         Args:
             optimization_level (int): The optimization level (0-3).
-            device (Architecture, optional): The target device architecture.
+            architecture (Architecture, optional): The target device architecture.
+                Defaults to None.
 
         Returns:
             SequencePass: A sequence of optimization passes.
@@ -202,13 +208,20 @@ class TketTranspiler(Transpiler):
                 CliffordSimp(),
             ])
 
-        # Add device-specific optimization if device is provided
-        if device is not None:
-            passes.append(DefaultMappingPass(device))
+        # Add device-specific optimization if architecture is provided
+        if architecture is not None:
+            # Convert FullyConnected to Architecture if needed
+            if isinstance(architecture, FullyConnected):
+                n_nodes = len(architecture.nodes)
+                architecture = Architecture([
+                    (i, j) for i in range(n_nodes) for j in range(i + 1, n_nodes)
+                ])
+
+            passes.append(DefaultMappingPass(architecture))
 
             # Add routing pass with more aggressive optimization
             passes.extend([
-                AASRouting(device, lookahead=5, cnotsynthtype=CNotSynthType.Rec),
+                AASRouting(architecture, lookahead=5, cnotsynthtype=CNotSynthType.Rec),
                 RebaseTket(),  # Final rebase pass
             ])
 

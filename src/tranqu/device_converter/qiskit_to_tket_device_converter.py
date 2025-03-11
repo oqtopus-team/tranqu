@@ -1,112 +1,90 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, NoReturn
 
-from pytket.backends import Backend  # type: ignore[import-untyped]
-from pytket.backends.backend import (  # type: ignore[import-untyped]
-    BackendInfo,  # type: ignore[import-untyped]
+from pytket import Circuit  # type: ignore[attr-defined]
+from pytket.architecture import Architecture  # type: ignore[attr-defined]
+from pytket.backends import Backend  # type: ignore[attr-defined]
+from pytket.backends.backend import (  # type: ignore[attr-defined]
+    BackendInfo,
     CircuitStatus,
     ResultHandle,
 )
-from pytket.circuit import Circuit  # type: ignore[import-untyped]
-from pytket.passes import BasePass  # type: ignore[import-untyped]
-from pytket.predicates import Predicate  # type: ignore[import-untyped]
 from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 
-from . import DeviceConverter, DeviceConverterError
+from .device_converter import DeviceConverter
+from .device_converter_manager import DeviceConverterError
+
+# Error messages
+CONVERSION_ONLY_ERROR = "This backend is for conversion only"
 
 
 class QiskitToTketDeviceConverter(DeviceConverter):
     """Converter that transforms Qiskit backends to tket device information."""
 
-    _CONVERSION_ONLY_ERROR = "This backend is for conversion only"
-
     @staticmethod
-    def convert(device: BackendV2) -> Backend:
-        """Convert a Qiskit backend to a tket Backend.
+    def convert(device: BackendV2) -> Backend:  # noqa: C901
+        """Convert a Qiskit device to a tket device.
 
         Args:
-            device: Source Qiskit backend.
+            device (BackendV2): Qiskit device to convert.
 
         Returns:
-            Converted tket Backend.
+            Backend: Converted tket device.
 
         Raises:
-            DeviceConverterError.invalid_backend_type: If the input is not a
-                BackendV2 instance.
+            DeviceConverterError: If the device is not a BackendV2 instance.
 
         """
         if not isinstance(device, BackendV2):
-            raise DeviceConverterError.invalid_backend_type()
+            error_message = f"Expected BackendV2, got {type(device)}"
+            raise DeviceConverterError(error_message)
 
         class ConvertedBackend(Backend):
-            """A converted tket backend."""
+            """Backend converted from Qiskit device."""
 
-            _CONVERSION_ONLY_ERROR = "This backend is for conversion only"
-
-            backend_info = BackendInfo(
-                name=device.name,
-                device_name=device.name,
-                version=device.backend_version,
-                architecture=device.coupling_map,
-                gate_set=device.operation_names,
-            )
+            def __init__(self) -> None:
+                self._architecture = Architecture(device.coupling_map.get_edges())
+                self._backend_info = BackendInfo(
+                    name=device.name,
+                    device_name=device.name,
+                    architecture=self._architecture,
+                    version="1.0.0",
+                    gate_set=device.operation_names,
+                )
 
             @property
-            def _result_id_type(
-                self,
-            ) -> tuple[
-                type[int]
-                | type[float]
-                | type[complex]
-                | type[str]
-                | type[bool]
-                | type[bytes],
-                ...,
-            ]:
-                """Return the type of result ID."""
-                return (str,)
+            def backend_info(self) -> BackendInfo:
+                return self._backend_info
 
-            def circuit_status(self, handle: ResultHandle) -> CircuitStatus:
-                """Return circuit execution status (not used in this converter)."""
-                raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
+            @property
+            def required_predicates(self) -> NoReturn:
+                raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
-            def process_circuit(
-                self,
-                circuit: Circuit,
-                n_shots: int | None = ...,
-                valid_check: bool = ...,  # noqa: FBT001
-                **kwargs: Any,  # noqa: ANN401
-            ) -> ResultHandle:
-                """Process a circuit (not used in this converter)."""
-                raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
+            def rebase_pass(self) -> NoReturn:
+                raise NotImplementedError(CONVERSION_ONLY_ERROR)
+
+            def default_compilation_pass(
+                self, optimisation_level: int | None = None
+            ) -> NoReturn:
+                raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
             def process_circuits(
                 self,
                 circuits: Sequence[Circuit],
-                n_shots: int | Sequence[int] | None = ...,
-                valid_check: bool = ...,  # noqa: FBT001
+                n_shots: int | Sequence[int | None] | None = None,
+                valid_check: bool = True,  # noqa: FBT001, FBT002
                 **kwargs: Any,  # noqa: ANN401
-            ) -> list[ResultHandle]:
-                """Process multiple circuits (not used in this converter)."""
-                raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
+            ) -> NoReturn:
+                raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
-            def run(self) -> ResultHandle:
-                """Execute circuits (not used in this converter)."""
-                raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
+            def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:  # noqa: ANN401
+                raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
             @property
-            def required_predicates(self) -> list[Predicate]:
-                """Return required predicates."""
-                return []
+            def _result_id_type(self) -> tuple[type[str]]:
+                return (str,)
 
-            def default_compilation_pass(
-                self, optimisation_level: int = ...
-            ) -> BasePass:
-                """Return default compilation settings."""
-                raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
-
-            def rebase_pass(self) -> BasePass:
-                """Return rebase settings."""
-                raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
+            def circuit_status(self, handle: ResultHandle) -> CircuitStatus:
+                raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
         return ConvertedBackend()

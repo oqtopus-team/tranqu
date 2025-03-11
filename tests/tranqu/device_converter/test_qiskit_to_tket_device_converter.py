@@ -2,8 +2,8 @@ from collections.abc import Sequence
 from typing import Any
 
 import pytest
-from pytket.backends import Backend  # type: ignore[import-untyped]
-from pytket.backends.backend import (  # type: ignore[import-untyped]
+from pytket.backends import Backend  # type: ignore[attr-defined]
+from pytket.backends.backend import (  # type: ignore[attr-defined]
     Circuit,
     ResultHandle,
 )
