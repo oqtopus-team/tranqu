@@ -136,36 +136,24 @@ def test_tranqu_respects_device_connectivity() -> None:
     transpiled_circuit = result.transpiled_program
     assert isinstance(transpiled_circuit, str)
 
+    assert "cx" in transpiled_circuit, "Expected CX gate in transpiled circuit"
 
-def test_tket_transpiler_respects_device_connectivity() -> None:
-    """Verify that transpiler respects device connectivity constraints."""
-    input_qasm = """
-        OPENQASM 3.0;
-        include "stdgates.inc";
-        qubit[2] q;
-        cx q[1], q[0];
-    """
-    transpiler = TketTranspiler("tket")
     converter = Openqasm3ToTketProgramConverter()
-    circuit = converter.convert(input_qasm)
+    tket_circuit = converter.convert(transpiled_circuit)
 
-    device = TestBackend()
-    result = transpiler.transpile(
-        circuit,
-        options={"optimization_level": 2},
-        device=device,
+    commands = tket_circuit.get_commands()
+    assert len(commands) == 1, f"Expected exactly 1 gate, but got {len(commands)}"
+
+    cx_commands = [cmd for cmd in commands if cmd.op.type == OpType.CX]
+    assert len(cx_commands) == 1, (
+        f"Expected exactly 1 CX gate, but got {len(cx_commands)}"
     )
 
-    transpiled_circuit = result.transpiled_program
-    commands = transpiled_circuit.get_commands()
-    assert len(commands) == 1, f"Expected 1 gate, but got {len(commands)}"
-    command = commands[0]
-    assert command.op.type == OpType.CX, f"Expected CX gate, but got {command.op.type}"
-    qubit_indices = [q.index[0] for q in command.qubits]
-    assert qubit_indices == [
-        0,
-        1,
-    ], f"Expected CNOT from qubit 0 to 1, but got {qubit_indices}"
+    cx_cmd = cx_commands[0]
+    qubit_indices = [q.index[0] for q in cx_cmd.qubits]
+    assert qubit_indices == [0, 1], (
+        f"Expected CNOT from qubit 0 to 1, but got {qubit_indices}"
+    )
 
     qubit_mapping = result.virtual_physical_mapping["qubit_mapping"]
     assert qubit_mapping == {0: 0, 1: 1}
