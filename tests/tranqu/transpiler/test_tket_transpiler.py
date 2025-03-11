@@ -1,22 +1,15 @@
-from pytket import Circuit  # type: ignore[import-untyped]
 from pytket.architecture import Architecture  # type: ignore[import-untyped]
 from pytket.circuit import OpType  # type: ignore[import-untyped]
 
+from tranqu import Tranqu
 from tranqu.program_converter import (
     Openqasm3ToTketProgramConverter,
 )
-from tranqu.transpile_result import TranspileResult
 from tranqu.transpiler import TketTranspiler
 
 
-def test_tket_transpiler_initialization() -> None:
-    """Test TketTranspiler initialization."""
-    transpiler = TketTranspiler("tket")
-    assert transpiler.program_lib == "tket"
-
-
-def test_tket_transpiler_optimizes_hadamard_identity() -> None:
-    """Verify that HH = I optimization is performed."""
+def test_tranqu_optimizes_hadamard_identity() -> None:
+    """Verify that HH = I optimization is performed using tranqu.transpile()."""
     qasm = """
         OPENQASM 3.0;
         include "stdgates.inc";
@@ -24,14 +17,15 @@ def test_tket_transpiler_optimizes_hadamard_identity() -> None:
         h q[0];
         h q[0];
     """
-    transpiler = TketTranspiler("tket")
-    converter = Openqasm3ToTketProgramConverter()
-    circuit = converter.convert(qasm)
+    tranqu = Tranqu()
 
-    result = transpiler.transpile(circuit)
+    result = tranqu.transpile(
+        program=qasm,
+        program_lib="openqasm3",
+        transpiler_lib="tket",
+    )
 
-    assert isinstance(result, TranspileResult)
-    assert isinstance(result.transpiled_program, Circuit)
+    assert isinstance(result.transpiled_program, str)
     assert result.stats["before"]["n_gates"] == 2
     assert result.stats["after"]["n_gates"] == 0
 
