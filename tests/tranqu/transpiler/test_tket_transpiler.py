@@ -30,24 +30,26 @@ def test_tranqu_optimizes_hadamard_identity() -> None:
     assert result.stats["after"]["n_gates"] == 0
 
 
-def test_tket_transpiler_with_basic_optimization() -> None:
-    """Verify optimization with basic synthesis level."""
+def test_tranqu_with_basic_optimization() -> None:
+    """Verify optimization with basic synthesis level using tranqu.transpile()."""
     qasm = """
         OPENQASM 3.0;
         include "stdgates.inc";
         qubit[1] q;
-        h q[0];
-        h q[0];
+        x q[0];
+        x q[0];
     """
-    transpiler = TketTranspiler("tket")
-    converter = Openqasm3ToTketProgramConverter()
-    circuit = converter.convert(qasm)
+    tranqu = Tranqu()
 
-    result = transpiler.transpile(
-        circuit,
-        options={"optimization_level": TketTranspiler.OPT_LEVEL_SYNTHESIS},
+    result = tranqu.transpile(
+        program=qasm,
+        program_lib="openqasm3",
+        transpiler_lib="tket",
+        transpiler_options={"optimization_level": TketTranspiler.OPT_LEVEL_SYNTHESIS},
     )
 
+    assert isinstance(result.transpiled_program, str)
+    assert result.stats["before"]["n_gates"] == 2
     assert result.stats["after"]["n_gates"] == 0
 
 
