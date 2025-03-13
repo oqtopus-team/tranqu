@@ -6,14 +6,18 @@ from pytket.architecture import (  # type: ignore[attr-defined]
     FullyConnected,
 )
 from pytket.backends import Backend  # type: ignore[attr-defined]
+from pytket.circuit import OpType  # type: ignore[attr-defined]
+from pytket.extensions.qiskit.backends.ibm_utils import (
+    _gen_lightsabre_transformation,  # noqa: PLC2701 # type: ignore[attr-defined]
+)
 from pytket.passes import (  # type: ignore[attr-defined]
-    AASRouting,
+    AutoRebase,
+    BasePass,
     CliffordSimp,
-    CNotSynthType,
+    CustomPass,
     DecomposeBoxes,
-    DefaultMappingPass,
     FullPeepholeOptimise,
-    RebaseTket,
+    GreedyPauliSimp,
     RemoveBarriers,
     SequencePass,
     SynthesiseTket,
@@ -30,17 +34,6 @@ class TketTranspiler(Transpiler):
     It optimizes quantum circuits using t|ket⟩'s optimization passes.
     """
 
-    # Optimization levels
-    OPT_LEVEL_BASIC = 0
-    OPT_LEVEL_SYNTHESIS = 1
-    OPT_LEVEL_CLIFFORD = 2
-    OPT_LEVEL_ADVANCED = 3
-
-    # Gate types by qubit count
-    SINGLE_QUBIT = 1
-    TWO_QUBIT = 2
-
-    # Error messages
     INVALID_OPT_LEVEL = "Invalid optimization level"
 
     def __init__(self, program_lib: str) -> None:
@@ -66,33 +59,27 @@ class TketTranspiler(Transpiler):
         if options is None:
             options = {}
 
-        optimization_level = options.get("optimization_level", self.OPT_LEVEL_SYNTHESIS)
+        self.device = device
 
-        # Create a copy of the program to avoid modifying the original
+        optimization_level = options.get("optimization_level", 1)
+
         program_copy = program.copy()
 
-        # Get the architecture from the device if provided
         architecture = None
         if device is not None and device.backend_info is not None:
             architecture = device.backend_info.architecture
 
-        # Apply optimization passes
-        if optimization_level >= self.OPT_LEVEL_SYNTHESIS:
-            # Create optimization pass based on options and device
+        if optimization_level >= 1:
             optimization_pass = self._create_optimization_pass(
                 optimization_level, architecture
             )
-
-            # Apply optimization passes
             optimization_pass.apply(program_copy)
 
-        # Extract statistics
         stats = {
             "before": self._extract_stats_from(program),
             "after": self._extract_stats_from(program_copy),
         }
 
-        # Create mapping
         mapping = {
             "qubit_mapping": self._create_qubit_mapping(program_copy),
             "bit_mapping": self._create_bit_mapping(program_copy),
@@ -116,14 +103,12 @@ class TketTranspiler(Transpiler):
             "n_gates": circuit.n_gates,
             "depth": circuit.depth(),
             "n_gates_1q": sum(
-                1
-                for cmd in circuit.get_commands()
-                if len(cmd.qubits) == TketTranspiler.SINGLE_QUBIT
+                1 for cmd in circuit.get_commands() if len(cmd.qubits) == 1
             ),
             "n_gates_2q": sum(
                 1
                 for cmd in circuit.get_commands()
-                if len(cmd.qubits) == TketTranspiler.TWO_QUBIT
+                if len(cmd.qubits) == 2  # noqa: PLR2004
             ),
         }
 
@@ -138,10 +123,8 @@ class TketTranspiler(Transpiler):
             dict[int, int]: A dictionary mapping virtual qubits to physical qubits.
 
         """
-        # Get the qubit mapping from the circuit
         qubit_mapping = {}
         for i, q in enumerate(circuit.qubits):
-            # Extract the physical qubit index from the Qubit object
             if hasattr(q, "index") and len(q.index) > 0:
                 qubit_mapping[i] = q.index[0]
             else:
@@ -159,10 +142,8 @@ class TketTranspiler(Transpiler):
             dict[int, int]: A dictionary mapping virtual bits to physical bits.
 
         """
-        # Get the bit mapping from the circuit
         bit_mapping = {}
         for i, b in enumerate(circuit.bits):
-            # Extract the physical bit index from the Bit object
             if hasattr(b, "index") and len(b.index) > 0:
                 bit_mapping[i] = b.index[0]
             else:
@@ -185,44 +166,143 @@ class TketTranspiler(Transpiler):
             SequencePass: A sequence of optimization passes.
 
         """
-        passes = []
+        timeout = 300
 
-        # Basic passes for all optimization levels
-        passes.append(DecomposeBoxes())
+        if isinstance(architecture, Architecture):
+            return self._arch_dependent_pass(architecture, optimization_level, timeout)
 
-        # Add optimization passes based on level
-        if optimization_level == self.OPT_LEVEL_BASIC:
-            # Basic rebase only
-            passes.append(RebaseTket())
-        elif optimization_level == self.OPT_LEVEL_SYNTHESIS:
-            # Basic synthesis
-            passes.append(SynthesiseTket())
-        elif optimization_level == self.OPT_LEVEL_CLIFFORD:
-            # Full optimization with Clifford simplification
-            passes.extend([FullPeepholeOptimise(), CliffordSimp()])
-        else:  # optimization_level == self.OPT_LEVEL_ADVANCED
-            # Advanced optimization with extended gate set
-            passes.extend([
+        return self._arch_independent_pass(optimization_level, timeout)
+
+    def _arch_dependent_pass(
+        self,
+        architecture: Architecture,
+        optimization_level: int,
+        timeout: int,
+    ) -> SequencePass:
+        arch_specific_passes = [
+            AutoRebase({OpType.CX, OpType.TK1}),
+            CustomPass(
+                _gen_lightsabre_transformation(architecture), label="lightsabrepass"
+            ),
+        ]
+
+        if optimization_level == 0:
+            return SequencePass(
+                [
+                    DecomposeBoxes(),
+                    self._rebase_pass(),
+                    *arch_specific_passes,
+                    self._rebase_pass(),
+                ],
+            )
+        if optimization_level == 1:
+            return SequencePass(
+                [
+                    DecomposeBoxes(),
+                    SynthesiseTket(),
+                    *arch_specific_passes,
+                    SynthesiseTket(),
+                ],
+            )
+        if optimization_level == 2:  # noqa: PLR2004
+            return SequencePass(
+                [
+                    DecomposeBoxes(),
+                    FullPeepholeOptimise(),
+                    *arch_specific_passes,
+                    CliffordSimp(False),  # noqa: FBT003
+                    SynthesiseTket(),
+                ],
+            )
+
+        return SequencePass(
+            [
+                DecomposeBoxes(),
                 RemoveBarriers(),
-                FullPeepholeOptimise(),
-                CliffordSimp(),
-            ])
+                AutoRebase({
+                    OpType.Z,
+                    OpType.X,
+                    OpType.Y,
+                    OpType.S,
+                    OpType.Sdg,
+                    OpType.V,
+                    OpType.Vdg,
+                    OpType.H,
+                    OpType.CX,
+                    OpType.CY,
+                    OpType.CZ,
+                    OpType.SWAP,
+                    OpType.Rz,
+                    OpType.Rx,
+                    OpType.Ry,
+                    OpType.T,
+                    OpType.Tdg,
+                    OpType.ZZMax,
+                    OpType.ZZPhase,
+                    OpType.XXPhase,
+                    OpType.YYPhase,
+                    OpType.PhasedX,
+                }),
+                GreedyPauliSimp(thread_timeout=timeout, only_reduce=True, trials=10),
+                *arch_specific_passes,
+                self._rebase_pass(),
+                SynthesiseTket(),
+            ],
+        )
 
-        # Add device-specific optimization if architecture is provided
-        if architecture is not None:
-            # Convert FullyConnected to Architecture if needed
-            if isinstance(architecture, FullyConnected):
-                n_nodes = len(architecture.nodes)
-                architecture = Architecture([
-                    (i, j) for i in range(n_nodes) for j in range(i + 1, n_nodes)
-                ])
+    def _arch_independent_pass(
+        self, optimization_level: int, timeout: int
+    ) -> SequencePass:
+        if optimization_level == 0:
+            return SequencePass([DecomposeBoxes(), self._rebase_pass()])
+        if optimization_level == 1:
+            return SequencePass([DecomposeBoxes(), SynthesiseTket()])
+        if optimization_level == 2:  # noqa: PLR2004
+            return SequencePass([DecomposeBoxes(), FullPeepholeOptimise()])
 
-            passes.append(DefaultMappingPass(architecture))
+        return SequencePass(
+            [
+                DecomposeBoxes(),
+                RemoveBarriers(),
+                AutoRebase({
+                    OpType.Z,
+                    OpType.X,
+                    OpType.Y,
+                    OpType.S,
+                    OpType.Sdg,
+                    OpType.V,
+                    OpType.Vdg,
+                    OpType.H,
+                    OpType.CX,
+                    OpType.CY,
+                    OpType.CZ,
+                    OpType.SWAP,
+                    OpType.Rz,
+                    OpType.Rx,
+                    OpType.Ry,
+                    OpType.T,
+                    OpType.Tdg,
+                    OpType.ZZMax,
+                    OpType.ZZPhase,
+                    OpType.XXPhase,
+                    OpType.YYPhase,
+                    OpType.PhasedX,
+                }),
+                GreedyPauliSimp(thread_timeout=timeout, only_reduce=True, trials=10),
+                self._rebase_pass(),
+                SynthesiseTket(),
+            ],
+        )
 
-            # Add routing pass with more aggressive optimization
-            passes.extend([
-                AASRouting(architecture, lookahead=5, cnotsynthtype=CNotSynthType.Rec),
-                RebaseTket(),  # Final rebase pass
-            ])
+    def _rebase_pass(self) -> BasePass:
+        if self.device is None:
+            error_message = "Device is not set"
+            raise ValueError(error_message)
 
-        return SequencePass(passes)
+        if self.device.backend_info is None:
+            error_message = "Device backend info is not set"
+            raise ValueError(error_message)
+
+        return AutoRebase(
+            self.device.backend_info.gate_set,
+        )

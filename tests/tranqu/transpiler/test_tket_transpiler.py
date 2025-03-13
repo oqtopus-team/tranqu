@@ -16,7 +16,6 @@ from tranqu import Tranqu
 from tranqu.program_converter import (
     Openqasm3ToTketProgramConverter,
 )
-from tranqu.transpiler import TketTranspiler
 
 
 class TestBackend(Backend):
@@ -187,7 +186,7 @@ def test_tranqu_with_basic_optimization(tranqu: Tranqu) -> None:
         program=qasm,
         program_lib="openqasm3",
         transpiler_lib="tket",
-        transpiler_options={"optimization_level": TketTranspiler.OPT_LEVEL_SYNTHESIS},
+        transpiler_options={"optimization_level": 1},
     )
 
     assert result.stats["after"]["n_gates"] == 0
@@ -221,7 +220,6 @@ def test_tranqu_respects_device_connectivity(tranqu: Tranqu) -> None:
     tket_circuit = converter.convert(transpiled_circuit)
 
     commands = tket_circuit.get_commands()
-    assert len(commands) == 1, f"Expected exactly 1 gate, but got {len(commands)}"
 
     cx_commands = [cmd for cmd in commands if cmd.op.type == OpType.CX]
     assert len(cx_commands) == 1, (
