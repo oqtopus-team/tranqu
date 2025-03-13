@@ -3,8 +3,8 @@
 import re
 
 import pytest
-from pytket import Circuit as TketCircuit
-from qiskit import QuantumCircuit as QiskitCircuit
+from pytket import Circuit  # type: ignore[attr-defined]
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit_ibm_runtime.fake_provider import FakeSantiagoV2
 
 from tranqu import Tranqu, __version__
@@ -34,12 +34,12 @@ class EnigmaCircuit:
 
 
 class EnigmaToQiskitConverter(ProgramConverter):
-    def convert(self, _program: EnigmaCircuit) -> QiskitCircuit:
-        return QiskitCircuit()
+    def convert(self, _program: EnigmaCircuit) -> QuantumCircuit:
+        return QuantumCircuit()
 
 
 class QiskitToEnigmaConverter(ProgramConverter):
-    def convert(self, _program: QiskitCircuit) -> EnigmaCircuit:
+    def convert(self, _program: QuantumCircuit) -> EnigmaCircuit:
         return EnigmaCircuit()
 
 
@@ -181,12 +181,12 @@ c[1] = measure $2;
         )
 
         result = tranqu.transpile(
-            TketCircuit(1),
+            Circuit(1),
             program_lib="tket",
             transpiler_lib="ouqu-tp",
         )
 
-        assert isinstance(result.transpiled_program, TketCircuit)
+        assert isinstance(result.transpiled_program, Circuit)
 
     def test_device_conversion_via_qiskit(self, tranqu: Tranqu):
         oqtopus_device = {
@@ -222,12 +222,12 @@ c[1] = measure $2;
         )
 
         result = tranqu.transpile(
-            TketCircuit(2),
+            Circuit(2),
             transpiler_lib="ouqu-tp",
             device=oqtopus_device,
         )
 
-        assert isinstance(result.transpiled_program, TketCircuit)
+        assert isinstance(result.transpiled_program, Circuit)
 
     def test_program_conversion_path_not_found(self, tranqu: Tranqu):
         circuit = EnigmaCircuit()
@@ -239,7 +239,7 @@ c[1] = measure $2;
             tranqu.transpile(circuit, program_lib="enigma", transpiler_lib="qiskit")
 
     def test_device_conversion_path_not_found(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(2)
+        circuit = QuantumCircuit(2)
         device = {"device_id": "custom_device", "qubits": [], "couplings": []}
 
         with pytest.raises(
@@ -255,35 +255,35 @@ c[1] = measure $2;
             )
 
     def test_resolve_program_lib(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(1)
+        circuit = QuantumCircuit(1)
 
         result = tranqu.transpile(
             circuit,
             transpiler_lib="qiskit",
         )
 
-        assert isinstance(result.transpiled_program, QiskitCircuit)
+        assert isinstance(result.transpiled_program, QuantumCircuit)
 
     def test_resolve_program_lib_with_tket_circuit(self, tranqu: Tranqu):
-        circuit = TketCircuit(1)
+        circuit = Circuit(1)
 
         result = tranqu.transpile(
             circuit,
             transpiler_lib="qiskit",
         )
 
-        assert isinstance(result.transpiled_program, TketCircuit)
+        assert isinstance(result.transpiled_program, Circuit)
 
     def test_resolve_device_lib(self, tranqu: Tranqu):
         device = FakeSantiagoV2()
 
         result = tranqu.transpile(
-            QiskitCircuit(1),
+            QuantumCircuit(1),
             transpiler_lib="qiskit",
             device=device,
         )
 
-        assert isinstance(result.transpiled_program, QiskitCircuit)
+        assert isinstance(result.transpiled_program, QuantumCircuit)
 
     def test_program_not_specified(self, tranqu: Tranqu):
         with pytest.raises(
@@ -296,7 +296,7 @@ c[1] = measure $2;
             )
 
     def test_transpiler_lib_not_specified(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(1)
+        circuit = QuantumCircuit(1)
 
         with pytest.raises(
             TranspilerLibNotSpecifiedError,
@@ -310,7 +310,7 @@ c[1] = measure $2;
 
     def test_transpiler_lib_not_exist(self, tranqu: Tranqu):
         tranqu.register_default_transpiler_lib("nop")
-        circuit = QiskitCircuit(1)
+        circuit = QuantumCircuit(1)
 
         with pytest.raises(
             TranspilerNotFoundError,
@@ -336,7 +336,7 @@ c[1] = measure $2;
             )
 
     def test_device_not_specified_error(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(1)
+        circuit = QuantumCircuit(1)
 
         with pytest.raises(
             DeviceNotSpecifiedError,

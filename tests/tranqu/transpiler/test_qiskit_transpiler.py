@@ -3,8 +3,8 @@
 import math
 
 import pytest
-from pytket import Circuit as TketCircuit
-from qiskit import QuantumCircuit as QiskitCircuit
+from pytket import Circuit  # type: ignore[attr-defined]
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit.circuit import Delay
 from qiskit.providers.fake_provider import GenericBackendV2
 from qiskit.transpiler import TranspilerError
@@ -18,7 +18,7 @@ def tranqu() -> Tranqu:
     return Tranqu()
 
 
-def assert_circuits_equivalent(circuit1: QiskitCircuit, circuit2: QiskitCircuit):
+def assert_circuits_equivalent(circuit1: QuantumCircuit, circuit2: QuantumCircuit):
     assert circuit1.data == circuit2.data, "Circuits are not equivalent"
 
 
@@ -47,7 +47,7 @@ def has_delay(result: TranspileResult) -> bool:
 class TestQiskitTranspiler:
     class TestTranspileVariousFormats:
         def test_transpile_qiskit_program(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(1)
+            circuit = QuantumCircuit(1)
             circuit.h(0)
             circuit.h(0)
 
@@ -60,7 +60,7 @@ class TestQiskitTranspiler:
             assert result.stats.after.n_gates == 0
 
         def test_transpile_tket_program(self, tranqu: Tranqu):
-            circuit = TketCircuit(1)
+            circuit = Circuit(1)
             circuit.H(0)
             circuit.H(0)
 
@@ -93,7 +93,7 @@ h q;
 
     class TestBasisGates:
         def test_basis_gates_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(1)
+            circuit = QuantumCircuit(1)
             circuit.x(0)
 
             result = tranqu.transpile(
@@ -103,12 +103,12 @@ h q;
                 transpiler_options={"basis_gates": ["rx"]},
             )
 
-            expected_circuit = QiskitCircuit(1)
+            expected_circuit = QuantumCircuit(1)
             expected_circuit.rx(math.pi, 0)  # X = Rx(π)
             assert_circuits_equivalent(result.transpiled_program, expected_circuit)
 
         def test_basis_gates_option_failure(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(1)
+            circuit = QuantumCircuit(1)
             circuit.x(0)
 
             with pytest.raises(TranspilerError):
@@ -121,7 +121,7 @@ h q;
 
     class TestCouplingMap:
         def test_directed_coupling_map_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(2)
+            circuit = QuantumCircuit(2)
             circuit.cz(1, 0)
 
             result = tranqu.transpile(
@@ -131,12 +131,12 @@ h q;
                 transpiler_options={"coupling_map": [[0, 1]]},
             )
 
-            expected_circuit = QiskitCircuit(2)
+            expected_circuit = QuantumCircuit(2)
             expected_circuit.cz(0, 1)
             assert_circuits_equivalent(result.transpiled_program, expected_circuit)
 
         def test_directed_coupling_map_device(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(2)
+            circuit = QuantumCircuit(2)
             circuit.cz(1, 0)
 
             result = tranqu.transpile(
@@ -151,12 +151,12 @@ h q;
                 device_lib="qiskit",
             )
 
-            expected_circuit = QiskitCircuit(2)
+            expected_circuit = QuantumCircuit(2)
             expected_circuit.cz(0, 1)
             assert_circuits_equivalent(result.transpiled_program, expected_circuit)
 
         def test_undirected_coupling_map_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(2)
+            circuit = QuantumCircuit(2)
             circuit.cx(0, 1)
 
             result = tranqu.transpile(
@@ -166,13 +166,13 @@ h q;
                 transpiler_options={"coupling_map": [[0, 1], [1, 0]]},
             )
 
-            expected_circuit = QiskitCircuit(2)
+            expected_circuit = QuantumCircuit(2)
             expected_circuit.cx(0, 1)
             assert_circuits_equivalent(result.transpiled_program, expected_circuit)
 
     class TestOptimizationLevel:
         def test_optimization_level_0_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(1)
+            circuit = QuantumCircuit(1)
             circuit.h(0)
             circuit.h(0)
 
@@ -186,7 +186,7 @@ h q;
             assert result.stats.after.n_gates == 2
 
         def test_optimization_level_1_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(1)
+            circuit = QuantumCircuit(1)
             circuit.h(0)
             circuit.h(0)
 
@@ -203,7 +203,7 @@ h q;
             assert result.stats.after.n_gates == 0
 
         def test_optimization_level_2_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(3)
+            circuit = QuantumCircuit(3)
             circuit.swap(0, 1)
 
             try:
@@ -219,7 +219,7 @@ h q;
             assert gate_count_of_type(result, "swap") == 0
 
         def test_optimization_level_3_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(3)
+            circuit = QuantumCircuit(3)
             circuit.swap(0, 2)
             circuit.swap(0, 1)
             circuit.cx(0, 1)
@@ -242,7 +242,7 @@ h q;
         def test_invalid_optimization_level_option(self, tranqu: Tranqu):
             with pytest.raises(ValueError, match="Invalid optimization level"):
                 tranqu.transpile(
-                    QiskitCircuit(),
+                    QuantumCircuit(),
                     "qiskit",
                     "qiskit",
                     transpiler_options={"optimization_level": -1},
@@ -250,7 +250,7 @@ h q;
 
             with pytest.raises(ValueError, match="Invalid optimization level"):
                 tranqu.transpile(
-                    QiskitCircuit(),
+                    QuantumCircuit(),
                     "qiskit",
                     "qiskit",
                     transpiler_options={"optimization_level": 4},
@@ -258,7 +258,7 @@ h q;
 
     class TestInitialLayout:
         def test_initial_layout_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(3)
+            circuit = QuantumCircuit(3)
             circuit.x(0)
             circuit.y(1)
             circuit.z(2)
@@ -270,7 +270,7 @@ h q;
                 transpiler_options={"initial_layout": [2, 1, 0]},
             )
 
-            expected_circuit = QiskitCircuit(3)
+            expected_circuit = QuantumCircuit(3)
             expected_circuit.z(0)
             expected_circuit.y(1)
             expected_circuit.x(2)
@@ -278,7 +278,7 @@ h q;
             assert_circuits_equivalent(result.transpiled_program, expected_circuit)
 
         def test_invalid_initial_layout_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(3)
+            circuit = QuantumCircuit(3)
 
             with pytest.raises(
                 TranspilerError,
@@ -291,7 +291,7 @@ h q;
                 )
 
     def test_layout_method_option(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(3)
+        circuit = QuantumCircuit(3)
         circuit.cx(0, 1)
         circuit.cx(1, 2)
         circuit.cx(0, 2)
@@ -340,7 +340,7 @@ h q;
         assert transpiled_program_sabre.depth() < transpiled_program_dense.depth()
 
     def test_routing_method_option(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(3)
+        circuit = QuantumCircuit(3)
         circuit.cx(0, 2)
 
         result = tranqu.transpile(
@@ -356,7 +356,7 @@ h q;
             },
         )
 
-        expected_circuit = QiskitCircuit(3)
+        expected_circuit = QuantumCircuit(3)
         expected_circuit.swap(2, 1)
         expected_circuit.cx(0, 1)
 
@@ -364,7 +364,7 @@ h q;
 
     class TestTranslationMethod:
         def test_translation_method_option(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(2)
+            circuit = QuantumCircuit(2)
             circuit.cx(0, 1)
             circuit.x(0)
             circuit.y(0)
@@ -409,7 +409,7 @@ h q;
                 match="Invalid plugin name invalid_method for stage translation",
             ):
                 tranqu.transpile(
-                    QiskitCircuit(),
+                    QuantumCircuit(),
                     "qiskit",
                     "qiskit",
                     transpiler_options={"translation_method": "invalid_method"},
@@ -417,7 +417,7 @@ h q;
 
     class TestSchedulingMethod:
         def test_scheduling_method(self, tranqu: Tranqu):
-            circuit = QiskitCircuit(3)
+            circuit = QuantumCircuit(3)
             circuit.cx(0, 1)
             circuit.h(2)  # This gate will be scheduled
 
@@ -467,7 +467,7 @@ h q;
                 match="Invalid plugin name invalid_method for stage scheduling",
             ):
                 tranqu.transpile(
-                    QiskitCircuit(),
+                    QuantumCircuit(),
                     "qiskit",
                     "qiskit",
                     transpiler_options={
@@ -476,7 +476,7 @@ h q;
                 )
 
     def test_instruction_durations_option(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(2)
+        circuit = QuantumCircuit(2)
         circuit.h(0)
         circuit.cx(0, 1)
 
@@ -501,7 +501,7 @@ h q;
         assert result.transpiled_program.duration == h_duration + cx_duration
 
     def test_dt_option(self, tranqu: Tranqu):
-        circuit = QiskitCircuit(2)
+        circuit = QuantumCircuit(2)
         circuit.h(0)
         circuit.cx(0, 1)
 
