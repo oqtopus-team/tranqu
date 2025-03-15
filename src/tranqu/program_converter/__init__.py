@@ -8,12 +8,11 @@ from .program_converter_manager import (
     ProgramConverterNotFoundError,
 )
 from .qiskit_to_openqasm3_program_converter import QiskitToOpenqasm3ProgramConverter
+from .qiskit_to_quri_parts_program_converter import QiskitToQuripartsProgramConverter
 from .qiskit_to_tket_program_converter import QiskitToTketProgramConverter
+from .quri_parts_to_qiskit_program_converter import QuripartsToQiskitProgramConverter
 from .tket_to_openqasm3_program_converter import TketToOpenqasm3ProgramConverter
 from .tket_to_qiskit_program_converter import TketToQiskitProgramConverter
-from .quri_parts_to_qiskit_program_converter import QuripartsToQiskitProgramConverter
-from .qiskit_to_quri_parts_program_converter import QiskitToQuripartsProgramConverter
-
 
 __all__ = [
     "Openqasm3ToQiskitProgramConverter",
@@ -24,9 +23,9 @@ __all__ = [
     "ProgramConverterManager",
     "ProgramConverterNotFoundError",
     "QiskitToOpenqasm3ProgramConverter",
+    "QiskitToQuripartsProgramConverter",
     "QiskitToTketProgramConverter",
+    "QuripartsToQiskitProgramConverter",
     "TketToOpenqasm3ProgramConverter",
     "TketToQiskitProgramConverter",
-    "QuripartsToQiskitProgramConverter",
-    "QiskitToQuripartsProgramConverter"
 ]

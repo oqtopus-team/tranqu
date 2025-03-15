@@ -96,11 +96,11 @@ from .program_converter import (
     ProgramConverter,
     ProgramConverterManager,
     QiskitToOpenqasm3ProgramConverter,
+    QiskitToQuripartsProgramConverter,
     QiskitToTketProgramConverter,
+    QuripartsToQiskitProgramConverter,
     TketToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
-    QiskitToQuripartsProgramConverter,
-    QuripartsToQiskitProgramConverter,
 )
 from .program_type_manager import ProgramTypeManager
 from .transpiler import OuquTpTranspiler, QiskitTranspiler, TranspilerManager
