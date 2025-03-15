@@ -17,6 +17,8 @@ from tranqu.program_converter import (
     ProgramConverter,
     QiskitToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
+    QiskitToQuripartsProgramConverter,
+    QuripartsToQiskitProgramConverter,
 )
 from tranqu.transpiler.transpiler_manager import TranspilerNotFoundError
 from tranqu.transpiler_dispatcher import (
@@ -178,6 +180,16 @@ c[1] = measure $2;
             "openqasm3",
             "tket",
             Openqasm3ToTketProgramConverter(),
+        )
+        tranqu.register_program_converter(
+            "qiskit",
+            "quri-parts",
+            QiskitToQuripartsProgramConverter(),
+        )
+        tranqu.register_program_converter(
+            "quri-parts",
+            "qiskit",
+            QuripartsToQiskitProgramConverter(),
         )
 
         result = tranqu.transpile(
