@@ -1,9 +1,10 @@
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
-from quri_parts.circuit import Program
-from quri_parts.qiskit.circuit.qiskit_circuit_converter import convert_to_quriparts
+from quri_parts.circuit import Program  # type: ignore
+from quri_parts.qiskit.circuit.qiskit_circuit_converter import convert_to_quriparts  # type: ignore
 
+from .program_converter import ProgramConverter
 
-class QiskitToQuriPartsProgramConverter:
+class QiskitToQuriPartsProgramConverter(ProgramConverter):
     """Convert a Qiskit quantum circuit to a QURI Parts program."""
 
     def convert(self, program: QuantumCircuit) -> Program:  # noqa: PLR6301

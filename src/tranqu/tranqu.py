@@ -96,7 +96,7 @@ from .program_converter import (
     ProgramConverter,
     ProgramConverterManager,
     QiskitToOpenqasm3ProgramConverter,
-    QiskitToQuripartsProgramConverter,
+    QiskitToQuriPartsProgramConverter,
     QiskitToTketProgramConverter,
     QuripartsToQiskitProgramConverter,
     TketToOpenqasm3ProgramConverter,
@@ -393,7 +393,7 @@ class Tranqu:
         self.register_program_converter(
             "qiskit",
             "quri-parts",
-            QiskitToQuripartsProgramConverter(),
+            QiskitToQuriPartsProgramConverter(),
         )
         self.register_program_converter(
             "quri-parts",

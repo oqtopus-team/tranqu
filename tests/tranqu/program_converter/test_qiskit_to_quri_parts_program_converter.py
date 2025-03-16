@@ -1,14 +1,14 @@
 # mypy: disable-error-code="import-untyped"
 
 from qiskit import QuantumCircuit
-from quri_parts.circuit import Program
+from quri_parts.circuit import Program  # type: ignore
 
-from tranqu.program_converter import QiskitToQuripartsProgramConverter
+from tranqu.program_converter import QiskitToQuriPartsProgramConverter
 
 
-class TestQiskitToQuripartsProgramConverter:
+class TestQiskitToQuriPartsProgramConverter:
     def setup_method(self):
-        self.converter = QiskitToQuripartsProgramConverter()
+        self.converter = QiskitToQuriPartsProgramConverter()
 
     def test_convert_valid_qiskit_circuit(self):
         circuit = QuantumCircuit(1)

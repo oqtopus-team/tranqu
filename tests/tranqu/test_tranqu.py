@@ -16,7 +16,7 @@ from tranqu.program_converter import (
     Openqasm3ToTketProgramConverter,
     ProgramConverter,
     QiskitToOpenqasm3ProgramConverter,
-    QiskitToQuripartsProgramConverter,
+    QiskitToQuriPartsProgramConverter,
     QuripartsToQiskitProgramConverter,
     TketToQiskitProgramConverter,
 )
@@ -184,7 +184,7 @@ c[1] = measure $2;
         tranqu.register_program_converter(
             "qiskit",
             "quri-parts",
-            QiskitToQuripartsProgramConverter(),
+            QiskitToQuriPartsProgramConverter(),
         )
         tranqu.register_program_converter(
             "quri-parts",

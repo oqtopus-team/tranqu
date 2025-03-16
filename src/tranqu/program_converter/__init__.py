@@ -8,7 +8,7 @@ from .program_converter_manager import (
     ProgramConverterNotFoundError,
 )
 from .qiskit_to_openqasm3_program_converter import QiskitToOpenqasm3ProgramConverter
-from .qiskit_to_quri_parts_program_converter import QiskitToQuripartsProgramConverter
+from .qiskit_to_quri_parts_program_converter import QiskitToQuriPartsProgramConverter
 from .qiskit_to_tket_program_converter import QiskitToTketProgramConverter
 from .quri_parts_to_qiskit_program_converter import QuripartsToQiskitProgramConverter
 from .tket_to_openqasm3_program_converter import TketToOpenqasm3ProgramConverter
