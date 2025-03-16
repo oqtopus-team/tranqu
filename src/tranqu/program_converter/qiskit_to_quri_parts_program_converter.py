@@ -1,6 +1,8 @@
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
-from quri_parts.circuit import Program  # type: ignore
-from quri_parts.qiskit.circuit.qiskit_circuit_converter import convert_to_quriparts  # type: ignore
+from quri_parts.circuit import Program  # type: ignore[import-untyped]
+from quri_parts.qiskit.circuit.circuit_converter import (
+    convert_to_quriparts,  # type: ignore[import-untyped]
+)
 
 from .program_converter import ProgramConverter
 
@@ -16,5 +18,6 @@ class QiskitToQuriPartsProgramConverter(ProgramConverter):
 
         Returns:
             Program: The converted QURI Parts quantum program.
+
         """
-        return convert_to_quriparts(program)
+        return convert_to_quriparts(program)  # type: ignore[return-value]
