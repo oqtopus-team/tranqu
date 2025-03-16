@@ -89,6 +89,11 @@ lint.ignore = [
 [tool.mypy]
 files = ["src", "tests"]
 mypy_path = ["src"]
+ignore_missing_imports = true
+
+[mypy.quri_parts]
+ignore_missing_imports = true
+
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report=xml"

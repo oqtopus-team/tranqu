@@ -1,7 +1,9 @@
 # mypy: disable-error-code="import-untyped"
 
 from qiskit import QuantumCircuit
-from quri_parts.circuit import Program
+from quri_parts.circuit import (
+    QuantumCircuit as QuriPartsQuantumCircuit,  # type: ignore[import-untyped]
+)
 
 from tranqu.program_converter import QiskitToQuriPartsProgramConverter
 
@@ -16,4 +18,4 @@ class TestQiskitToQuriPartsProgramConverter:
 
         result = self.converter.convert(circuit)
 
-        assert isinstance(result, Program)
+        assert isinstance(result, QuriPartsQuantumCircuit)
