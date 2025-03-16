@@ -23,7 +23,7 @@ __all__ = [
     "ProgramConverterManager",
     "ProgramConverterNotFoundError",
     "QiskitToOpenqasm3ProgramConverter",
-    "QiskitToQuripartsProgramConverter",
+    "QiskitToQuriPartsProgramConverter",
     "QiskitToTketProgramConverter",
     "QuripartsToQiskitProgramConverter",
     "TketToOpenqasm3ProgramConverter",

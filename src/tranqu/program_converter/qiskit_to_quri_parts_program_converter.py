@@ -4,6 +4,7 @@ from quri_parts.qiskit.circuit.qiskit_circuit_converter import convert_to_quripa
 
 from .program_converter import ProgramConverter
 
+
 class QiskitToQuriPartsProgramConverter(ProgramConverter):
     """Convert a Qiskit quantum circuit to a QURI Parts program."""
 
@@ -15,6 +16,5 @@ class QiskitToQuriPartsProgramConverter(ProgramConverter):
 
         Returns:
             Program: The converted QURI Parts quantum program.
-
         """
         return convert_to_quriparts(program)
