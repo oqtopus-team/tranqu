@@ -1,6 +1,6 @@
 [project]
 name = "tranqu"
-version = "0.3.1"
+version = "1.0.0"
 description = "Tranqu: A one-stop framework for transpilers across multiple quantum programming libraries and formats for quantum circuits"
 readme = "README.md"
 license = "Apache-2.0"
