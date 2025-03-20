@@ -1,3 +1,5 @@
+![OQTOPUS logo](./docs/asset/oqtopus_logo.png)
+
 # Tranqu
 
 [![CI](https://github.com/oqtopus-team/tranqu/actions/workflows/ci.yaml/badge.svg)](https://github.com/oqtopus-team/tranqu/actions/workflows/ci.yaml)
