@@ -7,6 +7,16 @@ from .pass_through_device_converter import PassThroughDeviceConverter
 class DeviceConverterError(TranquError):
     """Base exception for device converter-related errors."""
 
+    @classmethod
+    def invalid_backend_type(cls) -> "DeviceConverterError":
+        """Create an error for invalid backend type.
+
+        Returns:
+            DeviceConverterError: The error instance.
+
+        """
+        return cls("Invalid backend type")
+
 
 class DeviceConverterAlreadyRegisteredError(DeviceConverterError):
     """Raised when attempting to register a device converter that already exists."""

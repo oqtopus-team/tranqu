@@ -78,8 +78,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from pytket import Circuit as TketCircuit
-from qiskit import QuantumCircuit as QiskitCircuit  # type: ignore[import-untyped]
+from pytket import Circuit  # type: ignore[attr-defined]
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 
 from .device_converter import (
@@ -88,6 +88,7 @@ from .device_converter import (
     OqtopusToOuquTpDeviceConverter,
     OqtoqusToQiskitDeviceConverter,
     QiskitToOuquTpDeviceConverter,
+    QiskitToTketDeviceConverter,
 )
 from .device_type_manager import DeviceTypeManager
 from .program_converter import (
@@ -101,7 +102,12 @@ from .program_converter import (
     TketToQiskitProgramConverter,
 )
 from .program_type_manager import ProgramTypeManager
-from .transpiler import OuquTpTranspiler, QiskitTranspiler, TranspilerManager
+from .transpiler import (
+    OuquTpTranspiler,
+    QiskitTranspiler,
+    TketTranspiler,
+    TranspilerManager,
+)
 from .transpiler_dispatcher import TranspilerDispatcher
 
 if TYPE_CHECKING:
@@ -405,14 +411,20 @@ class Tranqu:
             "ouqu-tp",
             QiskitToOuquTpDeviceConverter(),
         )
+        self.register_device_converter(
+            "qiskit",
+            "tket",
+            QiskitToTketDeviceConverter(),
+        )
 
     def _register_builtin_transpilers(self) -> None:
         self.register_transpiler("qiskit", QiskitTranspiler(program_lib="qiskit"))
         self.register_transpiler("ouqu-tp", OuquTpTranspiler(program_lib="openqasm3"))
+        self.register_transpiler("tket", TketTranspiler(program_lib="tket"))
 
     def _register_builtin_program_types(self) -> None:
-        self.register_program_type("qiskit", QiskitCircuit)
-        self.register_program_type("tket", TketCircuit)
+        self.register_program_type("qiskit", QuantumCircuit)
+        self.register_program_type("tket", Circuit)
 
     def _register_builtin_device_types(self) -> None:
         self.register_device_type("qiskit", BackendV2)

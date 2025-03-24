@@ -10,6 +10,7 @@ from .oqtopus_to_qiskit_device_converter import OqtoqusToQiskitDeviceConverter
 from .pass_through_device_converter import PassThroughDeviceConverter
 from .qiskit_device import QiskitDevice
 from .qiskit_to_ouqu_tp_device_converter import QiskitToOuquTpDeviceConverter
+from .qiskit_to_tket_device_converter import QiskitToTketDeviceConverter
 
 __all__ = [
     "DeviceConverter",
@@ -22,4 +23,5 @@ __all__ = [
     "PassThroughDeviceConverter",
     "QiskitDevice",
     "QiskitToOuquTpDeviceConverter",
+    "QiskitToTketDeviceConverter",
 ]

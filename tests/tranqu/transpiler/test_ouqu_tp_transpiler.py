@@ -1,7 +1,7 @@
 from typing import Any
 
 import pytest
-from pytket import Circuit as TketCircuit
+from pytket import Circuit  # type: ignore[attr-defined]
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit.circuit import Parameter  # type: ignore[import-untyped]
 from qiskit.circuit.library import (  # type: ignore[import-untyped]
@@ -207,7 +207,7 @@ c = measure q;
     def test_transpile_tket_program(
         self, tranqu: Tranqu, simple_device: dict[str, Any]
     ):
-        circuit = TketCircuit(2)
+        circuit = Circuit(2)
         circuit.H(0)
         circuit.CX(0, 1)
 
@@ -219,7 +219,7 @@ c = measure q;
             device_lib="oqtopus",
         )
 
-        assert isinstance(result.transpiled_program, TketCircuit)
+        assert isinstance(result.transpiled_program, Circuit)
         assert result.stats != {}
         assert result.virtual_physical_mapping != {}
 
@@ -267,7 +267,7 @@ cx q[0],q[1];
     def test_transpile_tket_program_with_qiskit_device(
         self, tranqu: Tranqu, qiskit_device: BackendV2
     ):
-        circuit = TketCircuit(2)
+        circuit = Circuit(2)
         circuit.H(0)
         circuit.CX(0, 1)
 
@@ -279,6 +279,6 @@ cx q[0],q[1];
             device_lib="qiskit",
         )
 
-        assert isinstance(result.transpiled_program, TketCircuit)
+        assert isinstance(result.transpiled_program, Circuit)
         assert result.stats != {}
         assert result.virtual_physical_mapping != {}
