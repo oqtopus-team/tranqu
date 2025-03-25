@@ -27,6 +27,8 @@ dependencies = [
   "pytket>=1.33.0,<2.0.0",
   "pytket-qiskit>=0.56.0",
   "ouqu-tp>=1.0.3",
+  "qiskit-ibm-runtime==0.24.1",
+  "quri-parts-qiskit<0.21.0"
 ]
 
 [project.urls]
