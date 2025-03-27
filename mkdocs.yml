@@ -24,6 +24,7 @@ theme:
   font:
     text: "Roboto"
     code: "Roboto Mono"
+  favicon: asset/favicon.png
   icon:
     repo: fontawesome/brands/github
   features:
