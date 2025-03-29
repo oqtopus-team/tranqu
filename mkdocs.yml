@@ -24,6 +24,7 @@ theme:
   font:
     text: "Roboto"
     code: "Roboto Mono"
+  logo: asset/oqtopus-white_symbol.png
   favicon: asset/favicon.png
   icon:
     repo: fontawesome/brands/github
