@@ -1,4 +1,4 @@
-![OQTOPUS logo](./asset/oqtopus_logo.png)
+![OQTOPUS logo](./asset/oqtopus-logo.png)
 
 # Tranqu
 
