@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
-    from qiskit import QuantumCircuit
-from qiskit.circuit.controlflow import CONTROL_FLOW_OP_NAMES
+    from qiskit import QuantumCircuit  # type: ignore[import-untyped]
+from qiskit.circuit.controlflow import (  # type: ignore[import-untyped]
+    CONTROL_FLOW_OP_NAMES,
+)
 
 
 class QiskitStatsExtractor:
@@ -18,9 +20,6 @@ class QiskitStatsExtractor:
         "initialize",
         *CONTROL_FLOW_OP_NAMES,  # 'if_else','for_loop','while_loop','switch_case'
     }
-
-    DEPTH_ONE = 1
-    DEPTH_TWO = 2
 
     def extract_stats_from(self, program: QuantumCircuit) -> dict[str, int]:
         """Extract statistical information from a Qiskit quantum circuit.
@@ -60,9 +59,9 @@ class QiskitStatsExtractor:
         count = 0
         for instruction in data:
             # is 1 qubit?
-            if len(instruction.qubits) != QiskitStatsExtractor.DEPTH_ONE:
+            if len(instruction.qubits) != 1:
                 continue
-            # is classical gate?
+            # is non gate opration?
             if instruction.operation.name in QiskitStatsExtractor._NON_GATE_OPERATION:
                 continue
             count += 1
@@ -74,9 +73,9 @@ class QiskitStatsExtractor:
         count = 0
         for instruction in data:
             # is 2 qubit?
-            if len(instruction.qubits) != QiskitStatsExtractor.DEPTH_TWO:
+            if len(instruction.qubits) != 2:  # noqa: PLR2004
                 continue
-            # is classical gate?
+            # is non gate opration?
             if instruction.operation.name in QiskitStatsExtractor._NON_GATE_OPERATION:
                 continue
             count += 1

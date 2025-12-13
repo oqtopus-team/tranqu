@@ -5,8 +5,4 @@ from .tranqu_error import TranquError
 from .transpile_result import TranspileResult
 
 __all__ = ["Tranqu", "TranquError", "TranspileResult"]
-try:
-    __version__ = version("tranqu")
-except Exception:
-    # 開発中のローカル clone 用の fallback
-    __version__ = "dev"
+__version__ = version("tranqu")
