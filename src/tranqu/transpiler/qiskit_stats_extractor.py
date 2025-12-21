@@ -37,10 +37,6 @@ class QiskitStatsExtractor:
         stats["n_gates_1q"] = self._count_single_qubit_gates(program)
         stats["n_gates_2q"] = self._count_two_qubit_gates(program)
         stats["depth"] = program.depth()
-        """
-        stats["classical_gates"] = self._count_classical_gates(program) # classic gate
-        stats["rena"] = 10507
-        """
         return stats
 
     @staticmethod
@@ -80,11 +76,3 @@ class QiskitStatsExtractor:
                 continue
             count += 1
         return count
-
-    @staticmethod
-    def _count_classical_gates(program: QuantumCircuit) -> int:  # sum of classic gate
-        return sum(
-            1
-            for instruction in program.data
-            if instruction.operation.name in QiskitStatsExtractor._NON_GATE_OPERATION
-        )
