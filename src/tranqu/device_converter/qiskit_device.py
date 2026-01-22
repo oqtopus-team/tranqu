@@ -48,9 +48,25 @@ class QiskitDevice(BackendV2):
     def run(self, _run_input: Any, **_options: dict[str, Any]) -> Any:  # noqa: ANN401
         """Raise an exception for unsupported functionality.
 
+        Args:
+            _run_input: Quantum circuit to execute.
+            **_options: Execution options.
+
         Raises:
             NotImplementedError: 'run' function is not supported.
 
         """
-        msg = "'run' function is not supported."
+        input_type = type(_run_input).__name__
+        num_qubits = getattr(_run_input, "num_qubits", None)
+        size = getattr(_run_input, "size", None)
+        input_summary = input_type
+        if isinstance(num_qubits, int):
+            input_summary = f"{input_summary} num_qubits={num_qubits}"
+        if isinstance(size, int):
+            input_summary = f"{input_summary} size={size}"
+        options_summary = f"{len(_options)} keys" if _options else "no options"
+        msg = (
+            f"'run' function is not supported for device '{self.name}' "
+            f"with input: {input_summary} and options: {options_summary}"
+        )
         raise NotImplementedError(msg)

@@ -1,6 +1,6 @@
-from pytket import Circuit
-from pytket.extensions.qiskit import qiskit_to_tk
-from qiskit import QuantumCircuit  # type: ignore[import-untyped]
+from pytket import Circuit  # type: ignore[attr-defined]  # pytket stubs miss re-exports
+from pytket.extensions.qiskit import qiskit_to_tk  # type: ignore[attr-defined]
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]  # qiskit is untyped
 
 from .program_converter import ProgramConverter
 

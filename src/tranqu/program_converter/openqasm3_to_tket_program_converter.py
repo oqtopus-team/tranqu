@@ -1,5 +1,5 @@
-from pytket import Circuit
-from pytket.extensions.qiskit import qiskit_to_tk
+from pytket import Circuit  # type: ignore[attr-defined]
+from pytket.extensions.qiskit import qiskit_to_tk  # type: ignore[attr-defined]
 from qiskit.qasm3 import loads  # type: ignore[import-untyped]
 
 from .program_converter import ProgramConverter
