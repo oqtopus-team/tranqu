@@ -1,7 +1,7 @@
 # mypy: disable-error-code="import-untyped"
 
-from pytket import Circuit as TketCircuit
-from qiskit import QuantumCircuit as QiskitCircuit
+from pytket import Circuit  # type: ignore[attr-defined]
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 
 from tranqu.program_converter import TketToQiskitProgramConverter
 
@@ -11,9 +11,9 @@ class TestTketToQiskitProgramConverter:
         self.converter = TketToQiskitProgramConverter()
 
     def test_convert_valid_qasm3(self):
-        circuit = TketCircuit(1)
+        circuit = Circuit(1)
         circuit.H(0)
 
         result = self.converter.convert(circuit)
 
-        assert isinstance(result, QiskitCircuit)
+        assert isinstance(result, QuantumCircuit)

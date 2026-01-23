@@ -1,6 +1,6 @@
 import pytest
 from openqasm3.parser import QASM3ParsingError
-from pytket import Circuit
+from pytket import Circuit  # type: ignore[attr-defined]
 
 from tranqu.program_converter import Openqasm3ToTketProgramConverter
 
