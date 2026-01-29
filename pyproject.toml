@@ -22,10 +22,10 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "qiskit>=1.0.0,<=1.4.0",
+  "qiskit>=2.0.0",
   "qiskit_qasm3_import>=0.5.0",
-  "pytket>=1.33.0,<2.0.0",
-  "pytket-qiskit>=0.56.0",
+  "pytket>=2.0.0",
+  "pytket-qiskit>=0.67.0",
   "ouqu-tp>=1.0.3",
 ]
 
@@ -33,8 +33,8 @@ dependencies = [
 documentation = "https://tranqu.readthedocs.io/"
 repository = "https://github.com/oqtopus-team/tranqu"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
   "ipykernel>=6.29.5",
   "mkdocs-gen-files>=0.5.0",
   "mkdocs-glightbox>=0.4.0",

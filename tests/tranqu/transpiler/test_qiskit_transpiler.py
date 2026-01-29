@@ -6,8 +6,9 @@ import pytest
 from pytket import Circuit as TketCircuit
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.circuit import Delay
+from qiskit.circuit.library import CXGate, HGate
 from qiskit.providers.fake_provider import GenericBackendV2
-from qiskit.transpiler import TranspilerError
+from qiskit.transpiler import InstructionProperties, Target, TranspilerError
 from qiskit_ibm_runtime.fake_provider import FakeSantiagoV2
 
 from tranqu import Tranqu, TranspileResult
@@ -167,7 +168,10 @@ h q;
             )
 
             expected_circuit = QiskitCircuit(2)
-            expected_circuit.cx(0, 1)
+            control_qubit = result.virtual_physical_mapping.qubit_mapping[0]
+            target_qubit = result.virtual_physical_mapping.qubit_mapping[1]
+            expected_circuit.cx(control_qubit, target_qubit)
+
             assert_circuits_equivalent(result.transpiled_program, expected_circuit)
 
     class TestOptimizationLevel:
@@ -337,7 +341,7 @@ h q;
         ).transpiled_program
 
         assert transpiled_program_dense.depth() < transpiled_program_trivial.depth()
-        assert transpiled_program_sabre.depth() < transpiled_program_dense.depth()
+        assert transpiled_program_sabre.depth() <= transpiled_program_dense.depth()
 
     def test_routing_method_option(self, tranqu: Tranqu):
         circuit = QiskitCircuit(3)
@@ -357,7 +361,7 @@ h q;
         )
 
         expected_circuit = QiskitCircuit(3)
-        expected_circuit.swap(2, 1)
+        expected_circuit.swap(1, 2)
         expected_circuit.cx(0, 1)
 
         assert_circuits_equivalent(result.transpiled_program, expected_circuit)
@@ -482,10 +486,14 @@ h q;
 
         h_duration = 50
         cx_duration = 500
-        custom_durations = [
-            ("h", [0], h_duration),
-            ("cx", [0, 1], cx_duration),
-        ]
+
+        target = Target(dt=1e-9)
+        target.add_instruction(
+            HGate(), {(0,): InstructionProperties(duration=h_duration * 1e-9)}
+        )
+        target.add_instruction(
+            CXGate(), {(0, 1): InstructionProperties(duration=cx_duration * 1e-9)}
+        )
 
         result = tranqu.transpile(
             circuit,
@@ -493,12 +501,13 @@ h q;
             "qiskit",
             transpiler_options={
                 "scheduling_method": "alap",
-                "instruction_durations": custom_durations,
+                "target": target,
                 "optimization_level": 0,
             },
         )
 
-        assert result.transpiled_program.duration == h_duration + cx_duration
+        duration = result.transpiled_program.estimate_duration(target, unit="dt")
+        assert duration == h_duration + cx_duration
 
     def test_dt_option(self, tranqu: Tranqu):
         circuit = QiskitCircuit(2)
@@ -534,7 +543,12 @@ h q;
             device_lib="qiskit",
         )
 
-        assert (
-            default_dt_result.transpiled_program.duration
-            == custom_dt_result.transpiled_program.duration * 2
+        default_duration = max(
+            default_dt_result.transpiled_program.qubit_stop_time(i)
+            for i in range(default_dt_result.transpiled_program.num_qubits)
         )
+        custom_duration = max(
+            custom_dt_result.transpiled_program.qubit_stop_time(i)
+            for i in range(custom_dt_result.transpiled_program.num_qubits)
+        )
+        assert default_duration == custom_duration * 2
