@@ -116,14 +116,20 @@ from .transpiler_dispatcher import TranspilerDispatcher
 if TYPE_CHECKING:  # pragma: no cover
     from .transpile_result import TranspileResult
 
+<<<<<<< HEAD
 import yaml
 
 """
+=======
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
 try:
     import yaml  # type: ignore[import-untyped]
 except ModuleNotFoundError:  # pragma: no cover
     yaml = None
+<<<<<<< HEAD
 """
+=======
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
 
 
 class Tranqu:
@@ -151,6 +157,10 @@ class Tranqu:
             "transpiler_options": None,
         }
 
+<<<<<<< HEAD
+=======
+        # for save
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         self._config_log: dict[str, Any] = {
             "default_transpiler_lib": None,
             "transpilers": [],
@@ -206,6 +216,10 @@ class Tranqu:
         if transpiler_lib is None and isinstance(default_transpiler_lib, str):
             transpiler_lib = default_transpiler_lib
 
+<<<<<<< HEAD
+=======
+        # merge user's option
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         if transpiler_options is None:
             if isinstance(default_options, dict):
                 transpiler_options = dict(default_options)
@@ -423,6 +437,7 @@ class Tranqu:
     def _register_builtin_device_types(self) -> None:
         self.register_device_type("qiskit", BackendV2)
 
+<<<<<<< HEAD
     def load(self, *, config_path: str | Path, reset: bool = True) -> None:
         """Load configuration from a YAML file."""
         config = self._read_yaml(config_path)
@@ -447,6 +462,37 @@ class Tranqu:
         self._default_transpile["transpiler_options"] = self._require_optional_dict(
             default_transpile.get("transpiler_options"),
             "default_transpile.transpiler_options",
+=======
+    # -----------------------------
+    # YAML config load/save
+    # -----------------------------
+
+    def load(self, *, config_path: str | Path, reset: bool = True) -> None:
+        """Load Tranqu configuration from a YAML file.
+
+        Args:
+            config_path (str | Path): Path to the YAML configuration file.
+            reset (bool): Whether to reset the managers before loading.
+                Defaults to True.
+
+        Raises:
+            TypeError: If `default_transpile` is not a mapping (dict).
+            TypeError: If YAML root is not a mapping/dict.
+
+        """
+        config = self._read_yaml(config_path)
+        default_transpile = config.get("default_transpile", {}) or {}
+        if not isinstance(default_transpile, dict):
+            message = "`default_transpile` must be a mapping (dict)."
+            raise TypeError(message)
+
+        self._default_transpile["program_lib"] = default_transpile.get("program_lib")
+        self._default_transpile["transpiler_lib"] = default_transpile.get(
+            "transpiler_lib"
+        )
+        self._default_transpile["transpiler_options"] = default_transpile.get(
+            "transpiler_options"
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         )
 
         if reset:
@@ -455,6 +501,11 @@ class Tranqu:
             self._transpiler_manager = TranspilerManager()
             self._program_type_manager = ProgramTypeManager()
             self._device_type_manager = DeviceTypeManager()
+<<<<<<< HEAD
+=======
+
+            # reset save-log too
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
             self._config_log = {
                 "default_transpiler_lib": None,
                 "transpilers": [],
@@ -464,6 +515,7 @@ class Tranqu:
                 "device_types": [],
             }
 
+<<<<<<< HEAD
         self._loaded_config = copy.deepcopy(config)
         self._loaded_config_path = Path(config_path)
 
@@ -471,6 +523,13 @@ class Tranqu:
             config.get("use_builtins", False),
             "use_builtins",
         )
+=======
+        # store the loaded config (for save)
+        self._loaded_config = copy.deepcopy(config)
+        self._loaded_config_path = Path(config_path)
+
+        use_builtins = bool(config.get("use_builtins", False))
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         if use_builtins:
             self._register_builtin_program_converters()
             self._register_builtin_device_converters()
@@ -480,6 +539,7 @@ class Tranqu:
 
         default_lib = config.get("default_transpiler_lib")
         if default_lib is not None:
+<<<<<<< HEAD
             default_lib_str = self._require_str(
                 default_lib,
                 "default_transpiler_lib",
@@ -510,14 +570,34 @@ class Tranqu:
         self._apply_device_types(
             self._require_list(config.get("device_types", []), "device_types")
         )
+=======
+            # allow_override=True because config should be authoritative
+            self.register_default_transpiler_lib(str(default_lib), allow_override=True)
+
+        # Optional: explicit registrations (advanced users)
+        self._apply_transpilers(config.get("transpilers", []) or [])
+        self._apply_program_converters(config.get("program_converters", []) or [])
+        self._apply_device_converters(config.get("device_converters", []) or [])
+        self._apply_program_types(config.get("program_types", []) or [])
+        self._apply_device_types(config.get("device_types", []) or [])
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
 
     def save(self, *, config_path: str | Path) -> None:
         """Save the last loaded configuration to a YAML file."""
         if self._loaded_config is None:
+<<<<<<< HEAD
+=======
+            # Should not happen because __init__ sets _loaded_config even for defaults,
+            # but keep it safe.
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
             config: dict[str, Any] = {"use_builtins": True}
         else:
             config = copy.deepcopy(self._loaded_config)
 
+<<<<<<< HEAD
+=======
+        # if user changed default_transpiler_lib after load, reflect it
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         if self._config_log["default_transpiler_lib"] is not None:
             config["default_transpiler_lib"] = self._config_log[
                 "default_transpiler_lib"
@@ -525,6 +605,10 @@ class Tranqu:
 
         self._write_yaml(config_path, config)
 
+<<<<<<< HEAD
+=======
+    # ---------- YAML I/O ----------
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
     @staticmethod
     def _read_yaml(path: str | Path) -> dict[str, Any]:
         if yaml is None:  # pragma: no cover
@@ -551,6 +635,7 @@ class Tranqu:
                 allow_unicode=True,
             )
 
+<<<<<<< HEAD
     @staticmethod
     def _require_bool(value: object, name: str) -> bool:
         if not isinstance(value, bool):
@@ -597,6 +682,9 @@ class Tranqu:
             raise TypeError(message)
         return value
 
+=======
+    # ---------- factory/import helpers ----------
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
     @staticmethod
     def _import_symbol(ref: str) -> Any:  # noqa: ANN401
         if ":" not in ref:
@@ -604,6 +692,10 @@ class Tranqu:
             raise ValueError(message)
         mod_name, sym = ref.split(":", 1)
 
+<<<<<<< HEAD
+=======
+        # minimal safety: allow only tranqu / qiskit / pytket namespaces
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         allowed_prefixes = ("tranqu.", "qiskit", "pytket")
         if not mod_name.startswith(allowed_prefixes):
             message = f"Import is not allowed: {mod_name}"
@@ -612,6 +704,7 @@ class Tranqu:
         mod = importlib.import_module(mod_name)
         return getattr(mod, sym)
 
+<<<<<<< HEAD
     def _instantiate_factory(self, factory: dict[str, object]) -> Any:  # noqa: ANN401
         factory_dict = self._require_dict(factory, "factory")
 
@@ -638,11 +731,41 @@ class Tranqu:
             raise ValueError(message)
         import_ref = self._require_str(import_ref_raw, "type.import")
         t = self._import_symbol(import_ref)
+=======
+    def _instantiate_factory(self, factory: dict[str, Any]) -> Any:  # noqa: ANN401
+        if not isinstance(factory, dict):
+            message = "factory must be a dict"
+            raise TypeError(message)
+
+        import_ref = factory.get("import")
+        if import_ref is None:
+            message = "factory.import is required (no builtin mapping table)"
+            raise ValueError(message)
+
+        kwargs = factory.get("kwargs", {}) or {}
+        if not isinstance(kwargs, dict):
+            message = "factory.kwargs must be a dict"
+            raise TypeError(message)
+
+        cls = self._import_symbol(str(import_ref))
+        return cls(**kwargs)
+
+    def _resolve_type_spec(self, spec: dict[str, Any]) -> type:
+        if not isinstance(spec, dict):
+            message = "type spec must be a dict"
+            raise TypeError(message)
+        import_ref = spec.get("import")
+        if import_ref is None:
+            message = "type.import is required (no builtin mapping table)"
+            raise ValueError(message)
+        t = self._import_symbol(str(import_ref))
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
         if not isinstance(t, type):
             message = f"Imported symbol is not a type: {import_ref}"
             raise TypeError(message)
         return t
 
+<<<<<<< HEAD
     def _apply_transpilers(self, items: list[object]) -> None:
         for item in items:
             item_dict = self._require_dict(item, "each transpiler item")
@@ -672,10 +795,40 @@ class Tranqu:
                 "program_converters[].factory",
             )
             conv = self._instantiate_factory(factory)
+=======
+    # ---------- apply explicit registrations ----------
+
+    def _apply_transpilers(self, items: list[Any]) -> None:
+        if not isinstance(items, list):
+            message = "transpilers must be a list"
+            raise TypeError(message)
+        for item in items:
+            if not isinstance(item, dict):
+                message = "each transpiler item must be a dict"
+                raise TypeError(message)
+            lib = str(item["lib"])
+            allow_override = bool(item.get("allow_override", False))
+            transpiler = self._instantiate_factory(item["factory"])
+            self.register_transpiler(lib, transpiler, allow_override=allow_override)
+
+    def _apply_program_converters(self, items: list[Any]) -> None:
+        if not isinstance(items, list):
+            message = "program_converters must be a list"
+            raise TypeError(message)
+        for item in items:
+            if not isinstance(item, dict):
+                message = "each program_converter item must be a dict"
+                raise TypeError(message)
+            src = str(item["from"])
+            dst = str(item["to"])
+            allow_override = bool(item.get("allow_override", False))
+            conv = self._instantiate_factory(item["factory"])
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
             if not isinstance(conv, ProgramConverter):
                 message = "factory must create a ProgramConverter"
                 raise TypeError(message)
             self.register_program_converter(
+<<<<<<< HEAD
                 src,
                 dst,
                 conv,
@@ -696,10 +849,28 @@ class Tranqu:
                 "device_converters[].factory",
             )
             conv = self._instantiate_factory(factory)
+=======
+                src, dst, conv, allow_override=allow_override
+            )
+
+    def _apply_device_converters(self, items: list[Any]) -> None:
+        if not isinstance(items, list):
+            message = "device_converters must be a list"
+            raise TypeError(message)
+        for item in items:
+            if not isinstance(item, dict):
+                message = "each device_converter item must be a dict"
+                raise TypeError(message)
+            src = str(item["from"])
+            dst = str(item["to"])
+            allow_override = bool(item.get("allow_override", False))
+            conv = self._instantiate_factory(item["factory"])
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
             if not isinstance(conv, DeviceConverter):
                 message = "factory must create a DeviceConverter"
                 raise TypeError(message)
             self.register_device_converter(
+<<<<<<< HEAD
                 src,
                 dst,
                 conv,
@@ -734,4 +905,33 @@ class Tranqu:
                 "device_types[].type",
             )
             device_type = self._resolve_type_spec(type_spec)
+=======
+                src, dst, conv, allow_override=allow_override
+            )
+
+    def _apply_program_types(self, items: list[Any]) -> None:
+        if not isinstance(items, list):
+            message = "program_types must be a list"
+            raise TypeError(message)
+        for item in items:
+            if not isinstance(item, dict):
+                message = "each program_type item must be a dict"
+                raise TypeError(message)
+            lib = str(item["lib"])
+            allow_override = bool(item.get("allow_override", False))
+            program_type = self._resolve_type_spec(item["type"])
+            self.register_program_type(lib, program_type, allow_override=allow_override)
+
+    def _apply_device_types(self, items: list[Any]) -> None:
+        if not isinstance(items, list):
+            message = "device_types must be a list"
+            raise TypeError(message)
+        for item in items:
+            if not isinstance(item, dict):
+                message = "each device_type item must be a dict"
+                raise TypeError(message)
+            lib = str(item["lib"])
+            allow_override = bool(item.get("allow_override", False))
+            device_type = self._resolve_type_spec(item["type"])
+>>>>>>> 063ffa9 (Add YAML-based config loading for built-in transpile settings)
             self.register_device_type(lib, device_type, allow_override=allow_override)
