@@ -485,22 +485,12 @@ class Tranqu:
     # -----------------------------
 
     def load(self, *, config_path: str | Path, reset: bool = True) -> None:
-        """Load Tranqu configuration from a YAML file.
-
-        Args:
-            config_path (str | Path): Path to the YAML configuration file.
-            reset (bool): Whether to reset the managers before loading.
-                Defaults to True.
-
-        Raises:
-            TypeError: If YAML root or config fields have invalid types.
-
-        """
+        """Load configuration from a YAML file."""
         config = self._read_yaml(config_path)
 
         default_transpile_raw = config.get("default_transpile")
         if default_transpile_raw is None:
-            default_transpile: dict[str, Any] = {}
+            default_transpile: dict[str, object] = {}
         else:
             default_transpile = self._require_dict(
                 default_transpile_raw,
@@ -630,21 +620,21 @@ class Tranqu:
 
     # ---------- strict type helpers ----------
     @staticmethod
-    def _require_bool(value: Any, name: str) -> bool:
+    def _require_bool(value: object, name: str) -> bool:
         if not isinstance(value, bool):
             message = f"{name} must be a bool."
             raise TypeError(message)
         return value
 
     @staticmethod
-    def _require_str(value: Any, name: str) -> str:
+    def _require_str(value: object, name: str) -> str:
         if not isinstance(value, str):
             message = f"{name} must be a str."
             raise TypeError(message)
         return value
 
     @staticmethod
-    def _require_optional_str(value: Any, name: str) -> str | None:
+    def _require_optional_str(value: object, name: str) -> str | None:
         if value is None:
             return None
         if not isinstance(value, str):
@@ -653,14 +643,14 @@ class Tranqu:
         return value
 
     @staticmethod
-    def _require_dict(value: Any, name: str) -> dict[str, Any]:
+    def _require_dict(value: object, name: str) -> dict[str, object]:
         if not isinstance(value, dict):
             message = f"{name} must be a dict."
             raise TypeError(message)
         return value
 
     @staticmethod
-    def _require_optional_dict(value: Any, name: str) -> dict[str, Any] | None:
+    def _require_optional_dict(value: object, name: str) -> dict[str, object] | None:
         if value is None:
             return None
         if not isinstance(value, dict):
@@ -669,7 +659,7 @@ class Tranqu:
         return value
 
     @staticmethod
-    def _require_list(value: Any, name: str) -> list[Any]:
+    def _require_list(value: object, name: str) -> list[object]:
         if not isinstance(value, list):
             message = f"{name} must be a list."
             raise TypeError(message)

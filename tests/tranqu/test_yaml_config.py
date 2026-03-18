@@ -1,12 +1,14 @@
-# tests/tranqu/test_yaml_config.py
-
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+import yaml
 
 from tranqu.tranqu import Tranqu
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_load_with_use_builtins_true(tmp_path: Path) -> None:
@@ -21,8 +23,8 @@ use_builtins: true
     tranqu = Tranqu()
     tranqu.load(config_path=config_path, reset=True)
 
-    assert tranqu._loaded_config is not None
-    assert tranqu._loaded_config["use_builtins"] is True
+    assert tranqu._loaded_config is not None  # noqa: SLF001
+    assert tranqu._loaded_config["use_builtins"] is True  # noqa: SLF001
 
 
 def test_load_with_default_transpile(tmp_path: Path) -> None:
@@ -43,9 +45,9 @@ default_transpile:
     tranqu = Tranqu()
     tranqu.load(config_path=config_path, reset=True)
 
-    assert tranqu._default_transpile["program_lib"] == "qiskit"
-    assert tranqu._default_transpile["transpiler_lib"] == "qiskit"
-    assert tranqu._default_transpile["transpiler_options"] == {
+    assert tranqu._default_transpile["program_lib"] == "qiskit"  # noqa: SLF001
+    assert tranqu._default_transpile["transpiler_lib"] == "qiskit"  # noqa: SLF001
+    assert tranqu._default_transpile["transpiler_options"] == {  # noqa: SLF001
         "optimization_level": 2,
         "seed_transpiler": 123,
     }
@@ -71,7 +73,8 @@ default_transpile:
     tranqu = Tranqu(config_path=src_path)
     tranqu.save(config_path=dst_path)
 
-    saved = Tranqu._read_yaml(dst_path)
+    with dst_path.open("r", encoding="utf-8") as f:
+        saved = yaml.safe_load(f)
 
     assert saved["use_builtins"] is True
     assert saved["default_transpiler_lib"] == "qiskit"
@@ -99,7 +102,9 @@ use_builtins: true
     tranqu.register_default_transpiler_lib("qiskit", allow_override=True)
     tranqu.save(config_path=dst_path)
 
-    saved = Tranqu._read_yaml(dst_path)
+    with dst_path.open("r", encoding="utf-8") as f:
+        saved = yaml.safe_load(f)
+
     assert saved["default_transpiler_lib"] == "qiskit"
 
 
@@ -113,7 +118,7 @@ use_builtins: 1
     )
 
     tranqu = Tranqu()
-    with pytest.raises(TypeError, match="use_builtins must be a bool"):
+    with pytest.raises(TypeError, match=r"use_builtins must be a bool"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -150,7 +155,7 @@ default_transpiler_lib: 123
     )
 
     tranqu = Tranqu()
-    with pytest.raises(TypeError, match="default_transpiler_lib must be a str"):
+    with pytest.raises(TypeError, match=r"default_transpiler_lib must be a str"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -164,7 +169,7 @@ default_transpile: 123
     )
 
     tranqu = Tranqu()
-    with pytest.raises(TypeError, match="default_transpile must be a dict"):
+    with pytest.raises(TypeError, match=r"default_transpile must be a dict"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -181,7 +186,7 @@ default_transpile:
     tranqu = Tranqu()
     with pytest.raises(
         TypeError,
-        match="default_transpile.transpiler_options must be a dict or None",
+        match=r"default_transpile\.transpiler_options must be a dict or None",
     ):
         tranqu.load(config_path=config_path, reset=True)
 
@@ -196,7 +201,7 @@ transpilers: 123
     )
 
     tranqu = Tranqu()
-    with pytest.raises(TypeError, match="transpilers must be a list"):
+    with pytest.raises(TypeError, match=r"transpilers must be a list"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -215,7 +220,7 @@ transpilers:
     )
 
     tranqu = Tranqu()
-    with pytest.raises(TypeError, match="factory.kwargs must be a dict"):
+    with pytest.raises(TypeError, match=r"factory\.kwargs must be a dict"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -233,7 +238,7 @@ transpilers:
     )
 
     tranqu = Tranqu()
-    with pytest.raises(TypeError, match="factory.import must be a str"):
+    with pytest.raises(TypeError, match=r"factory\.import must be a str"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -251,7 +256,7 @@ program_types:
     )
 
     tranqu = Tranqu()
-    with pytest.raises(ValueError, match="Import is not allowed"):
+    with pytest.raises(ValueError, match=r"Import is not allowed"):
         tranqu.load(config_path=config_path, reset=True)
 
 
@@ -275,7 +280,8 @@ program_types:
     tranqu.load(config_path=src_path, reset=True)
     tranqu.save(config_path=dst_path)
 
-    saved = Tranqu._read_yaml(dst_path)
+    with dst_path.open("r", encoding="utf-8") as f:
+        saved = yaml.safe_load(f)
 
     assert saved["use_builtins"] is False
     assert saved["program_types"] == [
