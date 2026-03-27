@@ -109,11 +109,14 @@ from .transpiler_dispatcher import TranspilerDispatcher
 
 if TYPE_CHECKING:
     from .transpile_result import TranspileResult
+import yaml  # type: ignore[import-untyped]
 
+"""
 try:
     import yaml  # type: ignore[import-untyped]
 except ModuleNotFoundError:  # pragma: no cover
     yaml = None
+"""
 
 
 class Tranqu:
