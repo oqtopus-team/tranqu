@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 import yaml
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 
 from tranqu.tranqu import Tranqu
 
@@ -293,3 +294,109 @@ program_types:
             },
         }
     ]
+
+
+def test_transpile_uses_default_program_and_transpiler_lib(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tranqu = Tranqu()
+    tranqu._default_transpile = {  # noqa: SLF001
+        "program_lib": "qiskit",
+        "transpiler_lib": "qiskit",
+        "transpiler_options": {"optimization_level": 1},
+    }
+
+    captured: dict[str, object] = {}
+
+    def fake_dispatch(*args: object) -> dict[str, object]:
+        (
+            _,
+            program,
+            program_lib,
+            transpiler_lib,
+            transpiler_options,
+            device,
+            device_lib,
+        ) = args
+        captured["program"] = program
+        captured["program_lib"] = program_lib
+        captured["transpiler_lib"] = transpiler_lib
+        captured["transpiler_options"] = transpiler_options
+        captured["device"] = device
+        captured["device_lib"] = device_lib
+        return {"ok": True}
+
+    monkeypatch.setattr(
+        "tranqu.tranqu.TranspilerDispatcher.dispatch",
+        fake_dispatch,
+    )
+
+    circuit = QuantumCircuit(2)
+    circuit.h(0)
+    circuit.cx(0, 1)
+
+    result = tranqu.transpile(program=circuit)
+
+    assert result == {"ok": True}
+    assert captured["program"] is circuit
+    assert captured["program_lib"] == "qiskit"
+    assert captured["transpiler_lib"] == "qiskit"
+    assert captured["transpiler_options"] == {"optimization_level": 1}
+    assert captured["device"] is None
+    assert captured["device_lib"] is None
+
+
+def test_transpile_merges_default_transpiler_options(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tranqu = Tranqu()
+    tranqu._default_transpile = {  # noqa: SLF001
+        "program_lib": "qiskit",
+        "transpiler_lib": "qiskit",
+        "transpiler_options": {"optimization_level": 1},
+    }
+
+    captured: dict[str, object] = {}
+
+    def fake_dispatch(*args: object) -> dict[str, object]:
+        (
+            _,
+            program,
+            program_lib,
+            transpiler_lib,
+            transpiler_options,
+            device,
+            device_lib,
+        ) = args
+        captured["program"] = program
+        captured["program_lib"] = program_lib
+        captured["transpiler_lib"] = transpiler_lib
+        captured["transpiler_options"] = transpiler_options
+        captured["device"] = device
+        captured["device_lib"] = device_lib
+        return {"ok": True}
+
+    monkeypatch.setattr(
+        "tranqu.tranqu.TranspilerDispatcher.dispatch",
+        fake_dispatch,
+    )
+
+    circuit = QuantumCircuit(2)
+    circuit.h(0)
+    circuit.cx(0, 1)
+
+    result = tranqu.transpile(
+        program=circuit,
+        transpiler_options={"seed_transpiler": 123},
+    )
+
+    assert result == {"ok": True}
+    assert captured["program"] is circuit
+    assert captured["program_lib"] == "qiskit"
+    assert captured["transpiler_lib"] == "qiskit"
+    assert captured["transpiler_options"] == {
+        "optimization_level": 1,
+        "seed_transpiler": 123,
+    }
+    assert captured["device"] is None
+    assert captured["device_lib"] is None
