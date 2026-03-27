@@ -104,7 +104,12 @@ from .program_converter import (
     TketToQiskitProgramConverter,
 )
 from .program_type_manager import ProgramTypeManager
-from .transpiler import OuquTpTranspiler, QiskitTranspiler, TranspilerManager
+from .transpiler import (
+    OuquTpTranspiler,
+    QiskitTranspiler,
+    TketTranspiler,
+    TranspilerManager,
+)
 from .transpiler_dispatcher import TranspilerDispatcher
 
 if TYPE_CHECKING:
@@ -401,6 +406,7 @@ class Tranqu:
 
     def _register_builtin_transpilers(self) -> None:
         self.register_transpiler("qiskit", QiskitTranspiler(program_lib="qiskit"))
+        self.register_transpiler("tket", TketTranspiler(program_lib="tket"))
         self.register_transpiler("ouqu-tp", OuquTpTranspiler(program_lib="openqasm3"))
 
     def _register_builtin_program_types(self) -> None:
