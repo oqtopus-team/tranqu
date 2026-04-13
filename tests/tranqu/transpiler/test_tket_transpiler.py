@@ -54,13 +54,15 @@ class BackendForTest(Backend):
     def process_circuits(
         self,
         circuits: Sequence[Circuit],
-        n_shots: int | Sequence[int | None] | None = None,
+        n_shots: int | Sequence[int] | None = None,
         valid_check: bool = True,  # noqa: FBT001, FBT002
         **kwargs: Any,
     ) -> NoReturn:
+        _ = (circuits, n_shots, valid_check, kwargs)
         raise NotImplementedError(self._ERROR_MESSAGE)
 
     def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:
+        _ = (handle, kwargs)
         raise NotImplementedError(self._ERROR_MESSAGE)
 
     @property
@@ -68,6 +70,7 @@ class BackendForTest(Backend):
         return (str,)
 
     def circuit_status(self, handle: ResultHandle) -> CircuitStatus:
+        _ = handle
         raise NotImplementedError(self._ERROR_MESSAGE)
 
 
@@ -104,13 +107,15 @@ class BackendWithMappingPass(Backend):
     def process_circuits(
         self,
         circuits: Sequence[Circuit],
-        n_shots: int | Sequence[int | None] | None = None,
+        n_shots: int | Sequence[int] | None = None,
         valid_check: bool = True,  # noqa: FBT001, FBT002
         **kwargs: Any,
     ) -> NoReturn:
+        _ = (circuits, n_shots, valid_check, kwargs)
         raise NotImplementedError(self._ERROR_MESSAGE)
 
     def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:
+        _ = (handle, kwargs)
         raise NotImplementedError(self._ERROR_MESSAGE)
 
     @property
@@ -118,6 +123,7 @@ class BackendWithMappingPass(Backend):
         return (str,)
 
     def circuit_status(self, handle: ResultHandle) -> CircuitStatus:
+        _ = handle
         raise NotImplementedError(self._ERROR_MESSAGE)
 
 

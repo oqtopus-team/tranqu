@@ -53,6 +53,14 @@ To check the types, run the following command:
 uv run mypy
 ```
 
+### How to Check Dead Code
+
+To detect unused code, run the following command:
+
+```shell
+uv run vulture
+```
+
 ### How to Test Code
 
 To test the code, run the following command:

@@ -93,13 +93,15 @@ class QiskitToTketDeviceConverter(DeviceConverter):
             def process_circuits(
                 self,
                 circuits: Sequence[Circuit],
-                n_shots: int | Sequence[int | None] | None = None,
+                n_shots: int | Sequence[int] | None = None,
                 valid_check: bool = True,  # noqa: FBT001, FBT002
                 **kwargs: Any,  # noqa: ANN401
             ) -> NoReturn:
+                _ = (self, circuits, n_shots, valid_check, kwargs)
                 raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
             def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:  # noqa: ANN401
+                _ = (self, handle, kwargs)
                 raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
             @property
@@ -107,6 +109,7 @@ class QiskitToTketDeviceConverter(DeviceConverter):
                 return (str,)
 
             def circuit_status(self, handle: ResultHandle) -> NoReturn:
+                _ = (self, handle)
                 raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
         return ConvertedBackend()
