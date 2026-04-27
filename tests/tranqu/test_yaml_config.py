@@ -14,7 +14,6 @@ from tranqu.tranqu import Tranqu
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
-# aaa
 
 
 class DummyProgramConverter(ProgramConverter):
@@ -32,6 +31,11 @@ class SpyRecords:
         self.program_converters: list[tuple[str, str, ProgramConverter, bool]] = []
         self.device_converters: list[tuple[str, str, DeviceConverter, bool]] = []
         self.device_types: list[tuple[str, type, bool]] = []
+        self.transpilers: list[tuple[str, object, bool]] = []
+
+
+class DummyTranspiler:
+    pass
 
 
 def make_spy_register_program_converter(
@@ -115,6 +119,59 @@ def make_spy_register_device_type(
         )
 
     return spy_register_device_type
+
+
+def make_spy_register_transpiler(records: SpyRecords) -> Callable[..., None]:
+    original = Tranqu.register_transpiler
+
+    def spy_register_transpiler(
+        self: Tranqu,
+        transpiler_lib: str,
+        transpiler: object,
+        *,
+        allow_override: bool = False,
+    ) -> None:
+        records.transpilers.append((transpiler_lib, transpiler, allow_override))
+        original(
+            self,
+            transpiler_lib,
+            transpiler,
+            allow_override=allow_override,
+        )
+
+    return spy_register_transpiler
+
+
+def assert_custom_converters_and_device_type_records(records: SpyRecords) -> None:
+    assert records.transpilers
+    transpiler_lib, transpiler, transpiler_allow_override = records.transpilers[-1]
+    assert transpiler_lib == "dummy"
+    assert isinstance(transpiler, DummyTranspiler)
+    assert transpiler_allow_override is True
+
+    assert records.program_converters
+    program_src, program_dst, program_converter, program_allow_override = (
+        records.program_converters[-1]
+    )
+    assert program_src == "qiskit"
+    assert program_dst == "dummy"
+    assert isinstance(program_converter, DummyProgramConverter)
+    assert program_allow_override is True
+
+    assert records.device_converters
+    device_src, device_dst, device_converter, device_allow_override = (
+        records.device_converters[-1]
+    )
+    assert device_src == "qiskit"
+    assert device_dst == "dummy"
+    assert isinstance(device_converter, DummyDeviceConverter)
+    assert device_allow_override is True
+
+    assert records.device_types
+    lib, device_type, allow_override = records.device_types[-1]
+    assert lib == "qiskit"
+    assert device_type.__name__ == "BackendV2"
+    assert allow_override is True
 
 
 def test_load_with_use_builtins_true(tmp_path: Path) -> None:
@@ -657,6 +714,11 @@ device_types:
     allow_override: true
     type:
       import: qiskit.providers:BackendV2
+transpilers:
+  - lib: dummy
+    allow_override: true
+    factory:
+      import: tranqu.test_yaml_config:DummyTranspiler
 """.strip(),
         encoding="utf-8",
     )
@@ -668,6 +730,8 @@ device_types:
             return DummyProgramConverter
         if ref == "tranqu.test_yaml_config:DummyDeviceConverter":
             return DummyDeviceConverter
+        if ref == "tranqu.test_yaml_config:DummyTranspiler":
+            return DummyTranspiler
         if ref == "qiskit.providers:BackendV2":
             return BackendV2
         pytest.fail(f"unexpected import ref: {ref}")
@@ -688,33 +752,24 @@ device_types:
         "register_device_type",
         make_spy_register_device_type(records),
     )
+    monkeypatch.setattr(
+        Tranqu,
+        "register_transpiler",
+        make_spy_register_transpiler(records),
+    )
 
     tranqu = Tranqu()
     tranqu.load(config_path=config_path, reset=True)
 
-    assert records.program_converters
-    program_src, program_dst, program_converter, program_allow_override = (
-        records.program_converters[-1]
-    )
-    assert program_src == "qiskit"
-    assert program_dst == "dummy"
-    assert isinstance(program_converter, DummyProgramConverter)
-    assert program_allow_override is True
+    assert_custom_converters_and_device_type_records(records)
 
-    assert records.device_converters
-    device_src, device_dst, device_converter, device_allow_override = (
-        records.device_converters[-1]
-    )
-    assert device_src == "qiskit"
-    assert device_dst == "dummy"
-    assert isinstance(device_converter, DummyDeviceConverter)
-    assert device_allow_override is True
 
-    assert records.device_types
-    lib, device_type, allow_override = records.device_types[-1]
-    assert lib == "qiskit"
-    assert device_type.__name__ == "BackendV2"
-    assert allow_override is True
+def test_read_yaml_rejects_non_mapping_root(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text("- item\n", encoding="utf-8")
+
+    with pytest.raises(TypeError, match=r"YAML root must be a mapping/dict"):
+        Tranqu().load(config_path=config_path, reset=True)
 
 
 def test_transpile_uses_default_program_and_transpiler_lib(
