@@ -275,6 +275,7 @@ def test_save_without_loaded_config_writes_builtin_default(tmp_path: Path) -> No
     dst_path = tmp_path / "output.yaml"
 
     tranqu = Tranqu()
+    tranqu._loaded_config = None  # noqa: SLF001
     tranqu.save(config_path=dst_path)
 
     with dst_path.open("r", encoding="utf-8") as f:
