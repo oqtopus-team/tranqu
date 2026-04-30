@@ -81,8 +81,8 @@ import importlib
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from pytket import Circuit as TketCircuit
-from qiskit import QuantumCircuit as QiskitCircuit  # type: ignore[import-untyped]
+from pytket import Circuit  # type: ignore[attr-defined]
+from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 
 from .device_converter import (
@@ -91,6 +91,7 @@ from .device_converter import (
     OqtopusToOuquTpDeviceConverter,
     OqtoqusToQiskitDeviceConverter,
     QiskitToOuquTpDeviceConverter,
+    QiskitToTketDeviceConverter,
 )
 from .device_type_manager import DeviceTypeManager
 from .program_converter import (
@@ -236,8 +237,7 @@ class Tranqu:
 
         """
         self._transpiler_manager.register_default_transpiler_lib(
-            default_transpiler_lib,
-            allow_override=allow_override,
+            default_transpiler_lib, allow_override=allow_override
         )
         self._config_log["default_transpiler_lib"] = default_transpiler_lib
 
@@ -249,6 +249,8 @@ class Tranqu:
         allow_override: bool = False,
     ) -> None:
         """Register a transpiler for optimizing quantum circuits.
+
+        This method allows you to register a transpiler for optimizing quantum circuits.
 
         Args:
             transpiler_lib (str): The name of the transpiler library.
@@ -272,11 +274,25 @@ class Tranqu:
     ) -> None:
         """Register a program converter.
 
+        This method allows you to register a converter for transforming
+        between different program types.
+
         Args:
-            from_program_lib (str): The identifier for the source program type.
-            to_program_lib (str): The identifier for the target program type.
-            converter (ProgramConverter): The converter to register.
+            from_program_lib (str): The identifier for the source program type of
+                the converter to be registered.
+            to_program_lib (str): The identifier for the target program type of
+                the converter to be registered.
+            converter (ProgramConverter): The program converter to be registered
+                (subclass of ProgramConverter).
             allow_override (bool): When True, allows overwriting of existing converters.
+                Defaults to False.
+
+        Examples:
+            To register a converter that transforms from "foo" to "bar", you can call:
+
+                tranqu.register_program_converter(
+                    "foo", "bar",
+                    FooToBarProgramConverter)
 
         """
         self._program_converter_manager.register_converter(
@@ -296,11 +312,23 @@ class Tranqu:
     ) -> None:
         """Register a device converter.
 
+        This method allows you to register a converter for transforming
+        between different device types.
+
         Args:
-            from_device_lib (str): The identifier for the source device type.
-            to_device_lib (str): The identifier for the target device type.
-            converter (DeviceConverter): The converter to register.
+            from_device_lib (str): The identifier for the source device type of
+                the converter to be registered.
+            to_device_lib (str): The identifier for the target device type of
+                the converter to be registered.
+            converter (DeviceConverter): The device converter to be registered
+                (subclass of DeviceConverter).
             allow_override (bool): When True, allows overwriting of existing converters.
+                Defaults to False.
+
+        Examples:
+            To register a converter that transforms from "foo" to "bar", you would call:
+
+                tranqu.register_device_converter("foo", "bar", FooToBarDeviceConverter)
 
         """
         self._device_converter_manager.register_converter(
@@ -317,7 +345,23 @@ class Tranqu:
         *,
         allow_override: bool = False,
     ) -> None:
-        """Register a mapping between a program type and its library identifier."""
+        """Register a mapping between a program type and its library identifier.
+
+        This method allows automatic detection of the program library based on the
+        program's type when calling transpile().
+
+        Args:
+            program_lib (str): The identifier for the program library
+              (e.g., "qiskit", "tket")
+            program_type (type): The type class to be associated with the library
+            allow_override (bool): When True, allows overwriting of existing type
+                registrations. Defaults to False.
+
+        Examples:
+            To register Qiskit's QuantumCircuit type:
+                tranqu.register_program_type("qiskit", QuantumCircuit)
+
+        """
         self._program_type_manager.register_type(
             program_lib,
             program_type,
@@ -331,7 +375,23 @@ class Tranqu:
         *,
         allow_override: bool = False,
     ) -> None:
-        """Register a mapping between a device type and its library identifier."""
+        """Register a mapping between a device type and its library identifier.
+
+        This method enables automatic detection of the device library based on
+        the device type when calling transpile().
+
+        Args:
+            device_lib (str): The identifier for the device library
+              (e.g., "qiskit", "oqtopus")
+            device_type (type): The type class to be associated with the library
+            allow_override (bool): When True, allows overwriting of existing type
+                registrations. Defaults to False.
+
+        Examples:
+            To register Qiskit's Backend type:
+                tranqu.register_device_type("qiskit", BackendV2)
+
+        """
         self._device_type_manager.register_type(
             device_lib,
             device_type,
@@ -396,15 +456,20 @@ class Tranqu:
             "ouqu-tp",
             QiskitToOuquTpDeviceConverter(),
         )
+        self.register_device_converter(
+            "qiskit",
+            "tket",
+            QiskitToTketDeviceConverter(),
+        )
 
     def _register_builtin_transpilers(self) -> None:
         self.register_transpiler("qiskit", QiskitTranspiler(program_lib="qiskit"))
-        self.register_transpiler("tket", TketTranspiler(program_lib="tket"))
         self.register_transpiler("ouqu-tp", OuquTpTranspiler(program_lib="openqasm3"))
+        self.register_transpiler("tket", TketTranspiler(program_lib="tket"))
 
     def _register_builtin_program_types(self) -> None:
-        self.register_program_type("qiskit", QiskitCircuit)
-        self.register_program_type("tket", TketCircuit)
+        self.register_program_type("qiskit", QuantumCircuit)
+        self.register_program_type("tket", Circuit)
 
     def _register_builtin_device_types(self) -> None:
         self.register_device_type("qiskit", BackendV2)
