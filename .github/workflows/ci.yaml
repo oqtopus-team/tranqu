@@ -82,6 +82,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --all-groups
 
+      - name: Setup Staq
+        uses: ./.github/actions/setup-staq
+
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml
 
