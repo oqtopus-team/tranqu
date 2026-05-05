@@ -1,56 +1,88 @@
 
 # Development Environment Setup
 
+This guide explains how to set up the development environment for contributing to Python Project Template.  
+The project provides a **Makefile** to simplify common development tasks.
+
 ## Prerequisites
 
-Before starting development, you need to install the following tools:
-
-### Development Environment
+Install the following tools before starting development.
 
 | Tool                                        | Version | Description                        |
-|---------------------------------------------|---------|------------------------------------|
-| [Python](https://www.python.org/downloads/) | >=3.12  | Python programming language        |
-| [uv](https://docs.astral.sh/uv/)            | -       | Python package and project manager |
+| ------------------------------------------- | ------- | ---------------------------------- |
+| [Python](https://www.python.org/downloads/) | >=3.10  | Python programming language        |
+| [uv](https://docs.astral.sh/uv/)            | >=0.10  | Python package and project manager |
 
-To start development, clone the repository:
+Clone the repository:
 
 ```shell
 git clone https://github.com/oqtopus-team/tranqu.git
 cd tranqu
 ```
 
-### Setting Up the Python Environment
+## Project Structure
 
-To install dependencies:
+The repository is organized as follows:
 
-```shell
-uv sync
+```text
+tranqu/
+├─ src/           # Python package source code
+├─ tests/         # Test suite
+├─ docs/          # Documentation sources (MkDocs)
+├─ .vscode/       # VSCode settings (optional)
+├─ .github/       # GitHub workflows and repository settings
+├─ pyproject.toml # Project configuration and dependencies
+├─ Makefile       # Development commands
+├─ mkdocs.yml     # MkDocs configuration
+├─ uv.lock        # Locked dependency versions
+└─ README.md      # Project overview
 ```
 
-## Lint and test
+## Installing Dependencies
 
-### How to Format Code
-
-To format the code, run the following command:
+Install the project dependencies and set up the local development environment:
 
 ```shell
-uv run ruff format
+make install
 ```
 
-### How to Lint Code
+This command performs the following:
 
-To check the types, run the following command:
+- Installs all dependencies via `uv`.
+- Configures the Git commit message template.
+
+## Linting and Testing
+
+### Format Code
+
+Format the code:
 
 ```shell
-uv run ruff check
+make format
 ```
 
-### How to Check Types
+### Lint Code
 
-To check the types, run the following command:
+Run linting and static type checking:
 
 ```shell
-uv run mypy
+make lint
+```
+
+### Run Tests
+
+Run the test suite:
+
+```shell
+make test
+```
+
+### Verify Code
+
+Run all verification steps (formatting, linting, and tests):
+
+```shell
+make verify
 ```
 
 ### How to Check Dead Code
@@ -58,24 +90,35 @@ uv run mypy
 To detect unused code, run the following command:
 
 ```shell
-uv run vulture
+make vulture
 ```
 
-### How to Test Code
+## Documentation
 
-To test the code, run the following command:
+### Lint Documentation
+
+Run documentation linting:
 
 ```shell
-uv run pytest
+make docs-lint
 ```
 
-## Starting the Documentation Server
+### Build Documentation
 
-We are using [MkDocs](https://www.mkdocs.org/) to generate the HTML documentation and [mkdocstrings-python](https://mkdocstrings.github.io/python/) to generate the Python API reference.
-To start the documentation server, run the following command:
+Build the documentation:
 
 ```shell
-uv run mkdocs serve
+make docs-build
 ```
 
-Then, check the documentation at [http://localhost:8000](http://localhost:8000).
+### Start the Documentation Server
+
+This project uses [MkDocs](https://www.mkdocs.org/) to generate the HTML documentation and
+[mkdocstrings-python](https://mkdocstrings.github.io/python/) to generate the Python API reference.  
+Start the documentation server with:
+
+```shell
+make docs-serve
+```
+
+Open the documentation in your browser at [http://localhost:8000](http://localhost:8000).
