@@ -75,13 +75,15 @@ jobs:
           # enable-cache: true
           enable-cache: false
           cache-dependency-glob: "**/uv.lock"
-          cache-python: true
+          # cache-python: true
+          cache-python: false
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --frozen --all-groups
+        # run: uv sync --frozen --all-groups
+        run: uv sync --frozen --all-groups --reinstall
 
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml
