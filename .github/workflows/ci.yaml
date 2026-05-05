@@ -85,6 +85,32 @@ jobs:
         # run: uv sync --frozen --all-groups
         run: uv sync --frozen --all-groups --reinstall
 
+      - name: Debug environment
+        run: |
+          uv run python --version
+          uv run python -c "import qiskit; print('qiskit', qiskit.__version__)"
+          uv run python -c "import openqasm3; print('openqasm3', openqasm3.__version__)"
+          uv run python -c "import pytket; print('pytket', pytket.__version__)"
+          uv run python -c "import importlib.metadata as m; print('antlr4-python3-runtime', m.version('antlr4-python3-runtime'))"
+          uv tree | grep -E "qiskit|openqasm|pytket|antlr"
+
+      - name: Dump converted QASM
+        run: |
+          uv run python - <<'EOF'
+from pytket import Circuit
+from tranqu.program_converter import (
+    TketToQiskitProgramConverter,
+    QiskitToOpenqasm3ProgramConverter,
+)
+
+tket_circuit = Circuit(1)
+qiskit_circuit = TketToQiskitProgramConverter().convert(tket_circuit)
+qasm = QiskitToOpenqasm3ProgramConverter().convert(qiskit_circuit)
+
+print(type(qasm))
+print(repr(qasm))
+EOF
+
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml
 
