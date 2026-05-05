@@ -67,7 +67,10 @@ packages = ["src/tranqu"]
 
 [tool.ruff]
 preview = true
-include = ["src/**/*.py", "tests/**/*.py"]
+include = [
+  "src/**/*.py",
+  "tests/**/*.py"
+]
 lint.select = ["ALL"]
 lint.ignore = [
   "COM812",
