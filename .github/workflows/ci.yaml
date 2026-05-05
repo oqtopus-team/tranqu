@@ -96,20 +96,17 @@ jobs:
 
       - name: Dump converted QASM
         run: |
-          uv run python - <<'EOF'
-from pytket import Circuit
-from tranqu.program_converter import (
-    TketToQiskitProgramConverter,
-    QiskitToOpenqasm3ProgramConverter,
-)
+          uv run python -c "
+          from pytket import Circuit
+          from tranqu.program_converter import TketToQiskitProgramConverter, QiskitToOpenqasm3ProgramConverter
 
-tket_circuit = Circuit(1)
-qiskit_circuit = TketToQiskitProgramConverter().convert(tket_circuit)
-qasm = QiskitToOpenqasm3ProgramConverter().convert(qiskit_circuit)
+          tket_circuit = Circuit(1)
+          qiskit_circuit = TketToQiskitProgramConverter().convert(tket_circuit)
+          qasm = QiskitToOpenqasm3ProgramConverter().convert(qiskit_circuit)
 
-print(type(qasm))
-print(repr(qasm))
-EOF
+          print(type(qasm))
+          print(repr(qasm))
+          "
 
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml
