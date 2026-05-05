@@ -108,6 +108,10 @@ jobs:
           print(repr(qasm))
           "
 
+      - name: Debug ouqu-tp output QASM
+        run: |
+          uv run python -c "from pytket import Circuit; from tranqu.program_converter import TketToQiskitProgramConverter, QiskitToOpenqasm3ProgramConverter; from tranqu.transpiler import OuquTpTranspiler; qiskit_circuit = TketToQiskitProgramConverter().convert(Circuit(1)); qasm = QiskitToOpenqasm3ProgramConverter().convert(qiskit_circuit); result = OuquTpTranspiler(program_lib='openqasm3').transpile(qasm); print('input qasm:'); print(repr(qasm)); print('ouqu-tp output qasm:'); print(repr(result.transpiled_program))"
+
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml
 
