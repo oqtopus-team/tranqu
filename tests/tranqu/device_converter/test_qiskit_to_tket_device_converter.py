@@ -205,6 +205,7 @@ class MockQiskitBackend(BackendV2):
         **kwargs: Any,
     ) -> ResultHandle:
         """Process a circuit (not used in this converter)."""
+        _ = (circuit, n_shots, valid_check, kwargs)
         raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
 
     def process_circuits(
@@ -215,6 +216,7 @@ class MockQiskitBackend(BackendV2):
         **kwargs: Any,
     ) -> list[ResultHandle]:
         """Process multiple circuits (not used in this converter)."""
+        _ = (circuits, n_shots, valid_check, kwargs)
         raise NotImplementedError(self._CONVERSION_ONLY_ERROR)
 
     def default_compilation_pass(

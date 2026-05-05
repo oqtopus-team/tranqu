@@ -21,10 +21,6 @@ class ProgramNotSpecifiedError(TranspilerDispatcherError):
     """Error raised when no program is specified."""
 
 
-class ProgramLibNotSpecifiedError(TranspilerDispatcherError):
-    """Error raised when no program library is specified."""
-
-
 class TranspilerLibNotSpecifiedError(TranspilerDispatcherError):
     """Error raised when no transpiler library is specified."""
 

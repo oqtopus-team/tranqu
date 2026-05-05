@@ -52,6 +52,7 @@ dev = [
   "types-colorama",
   "types-protobuf",
   "uv>=0.4.20",
+  "vulture>=2.16",
 ]
 
 [build-system]
@@ -88,6 +89,10 @@ lint.ignore = [
 
 [tool.mypy]
 files = ["src", "tests"]
+
+[tool.vulture]
+paths = ["src", "tests"]
+ignore_names = ["_default_options", "process_circuit"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report=xml"
