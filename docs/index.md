@@ -41,11 +41,11 @@ The name "Tranqu" is derived from "tranquility," reflecting the desire to enable
 
 ## Developer Guidelines
 
-- [Development Flow](./developer_guidelines/index.md)
+- [Development Flow](./developer_guidelines/development_flow.md)
 - [Setup Development Environment](./developer_guidelines/setup.md)
 - [How to Contribute](./CONTRIBUTING.md)
-- [Code of Conduct](https://oqtopus-team.github.io/code-of-conduct/)
-- [Security](https://oqtopus-team.github.io/security-policy/)
+- [Code of Conduct](https://github.com/oqtopus-team/.github/blob/main/CODE_OF_CONDUCT.md)
+- [Security](https://github.com/oqtopus-team/.github/blob/main/SECURITY.md)
 
 ## Citation
 
