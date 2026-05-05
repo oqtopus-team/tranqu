@@ -192,7 +192,6 @@ c[1] = measure q[1];
 
             assert_semantically_valid_oqtopus_qiskit_qasm(result.transpiled_program)
 
-    @pytest.mark.skip(reason="Temporarily skipped because ouqu-tp output QASM fails")
     def test_program_conversion_via_qiskit(self, tranqu: Tranqu):
         tranqu._program_converter_manager._converters.clear()  # noqa: SLF001
 
@@ -220,7 +219,6 @@ c[1] = measure q[1];
 
         assert isinstance(result.transpiled_program, Circuit)
 
-    @pytest.mark.skip(reason="Temporarily skipped because ouqu-tp output QASM fails")
     def test_device_conversion_via_qiskit(self, tranqu: Tranqu):
         oqtopus_device = {
             "device_id": "test_device",

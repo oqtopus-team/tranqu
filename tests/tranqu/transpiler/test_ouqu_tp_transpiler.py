@@ -20,7 +20,6 @@ from tranqu import Tranqu
 from tranqu.device_converter.qiskit_device import QiskitDevice
 
 
-@pytest.mark.skip(reason="Temporarily skipped because ouqu-tp output QASM fails")
 class TestOuquTpTranspiler:
     @pytest.fixture
     def tranqu(self) -> Tranqu:
