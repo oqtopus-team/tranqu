@@ -72,45 +72,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          # enable-cache: true
-          enable-cache: false
+          enable-cache: true
           cache-dependency-glob: "**/uv.lock"
-          # cache-python: true
-          cache-python: false
+          cache-python: true
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        # run: uv sync --frozen --all-groups
-        run: uv sync --frozen --all-groups --reinstall
-
-      - name: Debug environment
-        run: |
-          uv run python --version
-          uv run python -c "import qiskit; print('qiskit', qiskit.__version__)"
-          uv run python -c "import openqasm3; print('openqasm3', openqasm3.__version__)"
-          uv run python -c "import pytket; print('pytket', pytket.__version__)"
-          uv run python -c "import importlib.metadata as m; print('antlr4-python3-runtime', m.version('antlr4-python3-runtime'))"
-          uv tree | grep -E "qiskit|openqasm|pytket|antlr"
-
-      - name: Dump converted QASM
-        run: |
-          uv run python -c "
-          from pytket import Circuit
-          from tranqu.program_converter import TketToQiskitProgramConverter, QiskitToOpenqasm3ProgramConverter
-
-          tket_circuit = Circuit(1)
-          qiskit_circuit = TketToQiskitProgramConverter().convert(tket_circuit)
-          qasm = QiskitToOpenqasm3ProgramConverter().convert(qiskit_circuit)
-
-          print(type(qasm))
-          print(repr(qasm))
-          "
-
-      - name: Debug ouqu-tp output QASM
-        run: |
-          uv run python -c "from pytket import Circuit; from tranqu.program_converter import TketToQiskitProgramConverter, QiskitToOpenqasm3ProgramConverter; from tranqu.transpiler import OuquTpTranspiler; qiskit_circuit = TketToQiskitProgramConverter().convert(Circuit(1)); qasm = QiskitToOpenqasm3ProgramConverter().convert(qiskit_circuit); result = OuquTpTranspiler(program_lib='openqasm3').transpile(qasm); print('input qasm:'); print(repr(qasm)); print('ouqu-tp output qasm:'); print(repr(result.transpiled_program))"
+        run: uv sync --frozen --all-groups
 
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml
