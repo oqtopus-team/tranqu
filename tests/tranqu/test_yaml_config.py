@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 from qiskit import QuantumCircuit  # type: ignore[import-untyped]
 from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 
-from tranqu.device_converter import DeviceConverter
-from tranqu.program_converter import ProgramConverter
-from tranqu.tranqu import Tranqu
+from tranqu.device_converter import DeviceConverter  # type: ignore[import-not-found]
+from tranqu.program_converter import ProgramConverter  # type: ignore[import-not-found]
+from tranqu.tranqu import Tranqu  # type: ignore[import-not-found]
 
 if TYPE_CHECKING:
     from collections.abc import Callable
