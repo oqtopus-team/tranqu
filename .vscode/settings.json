@@ -8,19 +8,23 @@
       "source.fixAll.ruff": "explicit",
       "source.organizeImports.ruff": "explicit"
     },
-    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "ruff.path": [
-    "${workspaceFolder}/.venv/bin/ruff"
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+  "python.terminal.activateEnvironment": true,
+  "python-envs.defaultEnvManager": "ms-python.python:uv",
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "file": ".github/instructions/commit-message.instructions.md"
+    }
   ],
-  "ruff.lint.args": [
-    "--config=${workspaceFolder}/pyproject.toml",
-  ],
-  "mypy-type-checker.path": [
-    "${workspaceFolder}/.venv/bin/mypy"
-  ],
-  "mypy-type-checker.args": [
-    "--config=${workspaceFolder}/pyproject.toml"
+  "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+    {
+      "file": ".github/instructions/pull-request-description.instructions.md"
+    }
   ],
   "autoDocstring.docstringFormat": "google",
   "todo-tree.general.tags": [
@@ -56,19 +60,9 @@
     }
   },
   "files.associations": {
-	  ".gitmessage": "plaintext"
-	},
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true,
-  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    ".gitmessage": "plaintext"
+  },
   "coverage-gutters.showGutterCoverage": true,
   "coverage-gutters.showLineCoverage": true,
-  "coverage-gutters.showRulerCoverage": true,
-  "yaml.validate": false,
-  "markdownlint.config": {
-      "MD024": false,
-      "MD033": false,
-      "MD041": false
-      },
-      "python-envs.defaultEnvManager": "ms-python.python:system"
+  "coverage-gutters.showRulerCoverage": true
 }
