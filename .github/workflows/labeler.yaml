@@ -79,7 +79,7 @@ jobs:
       - name: Assign PR creator
         if: >-
           github.event.pull_request.head.repo.full_name == github.repository &&
-          github.actor != 'dependabot[bot]'
+          github.event.pull_request.user.login != 'dependabot[bot]'
         uses: actions/github-script@v9
         with:
           script: |
@@ -87,5 +87,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              assignees: [context.actor]
+              assignees: [context.payload.pull_request.user.login]
             })
