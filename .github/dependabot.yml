@@ -9,7 +9,7 @@ updates:
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 7
     commit-message:
@@ -22,7 +22,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/.devcontainer"
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 7
     commit-message:
@@ -35,7 +35,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 7
     commit-message:
@@ -48,7 +48,7 @@ updates:
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 7
     commit-message:
