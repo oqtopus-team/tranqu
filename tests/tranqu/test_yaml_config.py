@@ -693,3 +693,213 @@ def test_load_rejects_non_dict_default_transpiler_options(
         ),
     ):
         Tranqu(config_path=config_path)
+
+
+def test_default_transpile_is_applied(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "default_transpile": {
+                "program_lib": "qiskit",
+                "transpiler_lib": "qiskit",
+                "transpiler_options": {
+                    "optimization_level": 2,
+                },
+            },
+        },
+    )
+
+    captured: dict[str, object] = {}
+    expected_result = object()
+
+    def fake_dispatch(*args: object) -> object:
+        (
+            _self,
+            program,
+            program_lib,
+            transpiler_lib,
+            transpiler_options,
+            device,
+            device_lib,
+        ) = args
+
+        captured["program"] = program
+        captured["program_lib"] = program_lib
+        captured["transpiler_lib"] = transpiler_lib
+        captured["transpiler_options"] = transpiler_options
+        captured["device"] = device
+        captured["device_lib"] = device_lib
+        return expected_result
+
+    monkeypatch.setattr(
+        "tranqu.tranqu.TranspilerDispatcher.dispatch",
+        fake_dispatch,
+    )
+
+    program = object()
+    tranqu = Tranqu(config_path=config_path)
+
+    result = tranqu.transpile(program)
+
+    assert result is expected_result
+    assert captured == {
+        "program": program,
+        "program_lib": "qiskit",
+        "transpiler_lib": "qiskit",
+        "transpiler_options": {
+            "optimization_level": 2,
+        },
+        "device": None,
+        "device_lib": None,
+    }
+
+
+def test_explicit_transpiler_options_override_defaults(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "default_transpile": {
+                "transpiler_options": {
+                    "optimization_level": 1,
+                    "seed_transpiler": 123,
+                },
+            },
+        },
+    )
+
+    captured: dict[str, object] = {}
+
+    def fake_dispatch(
+        _self: object,
+        _program: object,
+        _program_lib: str | None,
+        _transpiler_lib: str | None,
+        transpiler_options: dict[str, object] | None,
+        _device: object | None,
+        _device_lib: str | None,
+    ) -> object:
+        captured["transpiler_options"] = transpiler_options
+        return object()
+
+    monkeypatch.setattr(
+        "tranqu.tranqu.TranspilerDispatcher.dispatch",
+        fake_dispatch,
+    )
+
+    tranqu = Tranqu(config_path=config_path)
+    tranqu.transpile(
+        object(),
+        transpiler_options={
+            "optimization_level": 3,
+        },
+    )
+
+    assert captured["transpiler_options"] == {
+        "optimization_level": 3,
+        "seed_transpiler": 123,
+    }
+
+
+@pytest.mark.parametrize(
+    ("field", "expected_message"),
+    [
+        (
+            "program_lib",
+            r"default_transpile\.program_lib must be a str or None",
+        ),
+        (
+            "transpiler_lib",
+            r"default_transpile\.transpiler_lib must be a str or None",
+        ),
+    ],
+)
+def test_load_rejects_non_string_default_transpile_library(
+    tmp_path: Path,
+    field: str,
+    expected_message: str,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "default_transpile": {
+                field: 123,
+            },
+        },
+    )
+
+    with pytest.raises(TypeError, match=expected_message):
+        Tranqu(config_path=config_path)
+
+
+def test_load_accepts_colon_import_path(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    _write_yaml(
+        input_path,
+        {
+            "program_types": {
+                "qiskit": {
+                    "type": "qiskit:QuantumCircuit",
+                },
+            },
+        },
+    )
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["program_types"] == {
+        "qiskit": {
+            "type": "qiskit:QuantumCircuit",
+        },
+    }
+
+
+def test_load_rejects_imported_symbol_that_is_not_type(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "program_types": {
+                "invalid": {
+                    "type": "qiskit.__version__",
+                },
+            },
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="Imported symbol is not a type",
+    ):
+        Tranqu(config_path=config_path)
+
+
+def test_save_includes_default_transpiler_lib(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    tranqu = Tranqu()
+    tranqu.register_default_transpiler_lib("tket")
+    tranqu.save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert saved["default_transpiler_lib"] == "tket"
