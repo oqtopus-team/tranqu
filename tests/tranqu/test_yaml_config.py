@@ -1,909 +1,695 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
-import yaml  # type: ignore[import-untyped]
-from qiskit import QuantumCircuit  # type: ignore[import-untyped]
-from qiskit.providers import BackendV2  # type: ignore[import-untyped]
+import yaml  # type: ignore[import]
 
-from tranqu.device_converter import DeviceConverter  # type: ignore[import-not-found]
-from tranqu.program_converter import ProgramConverter  # type: ignore[import-not-found]
-from tranqu.tranqu import Tranqu  # type: ignore[import-not-found]
+from tranqu.tranqu import Tranqu
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from pathlib import Path
 
 
-class DummyProgramConverter(ProgramConverter):
-    def convert(self, program: object, _device: object | None = None) -> object:
-        return program
-
-
-class DummyDeviceConverter(DeviceConverter):
-    def convert(self, device: object) -> object:
-        return device
-
-
-class SpyRecords:
-    def __init__(self) -> None:
-        self.program_converters: list[tuple[str, str, ProgramConverter, bool]] = []
-        self.device_converters: list[tuple[str, str, DeviceConverter, bool]] = []
-        self.device_types: list[tuple[str, type, bool]] = []
-        self.transpilers: list[tuple[str, object, bool]] = []
-
-
-class DummyTranspiler:
-    pass
-
-
-def make_spy_register_program_converter(
-    records: SpyRecords,
-) -> Callable[..., None]:
-    original = Tranqu.register_program_converter
-
-    def spy_register_program_converter(
-        self: Tranqu,
-        from_program_lib: str,
-        to_program_lib: str,
-        converter: ProgramConverter,
-        *,
-        allow_override: bool = False,
-    ) -> None:
-        records.program_converters.append((
-            from_program_lib,
-            to_program_lib,
-            converter,
-            allow_override,
-        ))
-        original(
-            self,
-            from_program_lib,
-            to_program_lib,
-            converter,
-            allow_override=allow_override,
-        )
-
-    return spy_register_program_converter
-
-
-def make_spy_register_device_converter(
-    records: SpyRecords,
-) -> Callable[..., None]:
-    original = Tranqu.register_device_converter
-
-    def spy_register_device_converter(
-        self: Tranqu,
-        from_device_lib: str,
-        to_device_lib: str,
-        converter: DeviceConverter,
-        *,
-        allow_override: bool = False,
-    ) -> None:
-        records.device_converters.append((
-            from_device_lib,
-            to_device_lib,
-            converter,
-            allow_override,
-        ))
-        original(
-            self,
-            from_device_lib,
-            to_device_lib,
-            converter,
-            allow_override=allow_override,
-        )
-
-    return spy_register_device_converter
-
-
-def make_spy_register_device_type(
-    records: SpyRecords,
-) -> Callable[..., None]:
-    original = Tranqu.register_device_type
-
-    def spy_register_device_type(
-        self: Tranqu,
-        device_lib: str,
-        device_type: type,
-        *,
-        allow_override: bool = False,
-    ) -> None:
-        records.device_types.append((device_lib, device_type, allow_override))
-        original(
-            self,
-            device_lib,
-            device_type,
-            allow_override=allow_override,
-        )
-
-    return spy_register_device_type
-
-
-def make_spy_register_transpiler(records: SpyRecords) -> Callable[..., None]:
-    original = Tranqu.register_transpiler
-
-    def spy_register_transpiler(
-        self: Tranqu,
-        transpiler_lib: str,
-        transpiler: object,
-        *,
-        allow_override: bool = False,
-    ) -> None:
-        records.transpilers.append((transpiler_lib, transpiler, allow_override))
-        original(
-            self,
-            transpiler_lib,
-            transpiler,
-            allow_override=allow_override,
-        )
-
-    return spy_register_transpiler
-
-
-def assert_custom_converters_and_device_type_records(records: SpyRecords) -> None:
-    assert records.transpilers
-    transpiler_lib, transpiler, transpiler_allow_override = records.transpilers[-1]
-    assert transpiler_lib == "dummy"
-    assert isinstance(transpiler, DummyTranspiler)
-    assert transpiler_allow_override is True
-
-    assert records.program_converters
-    program_src, program_dst, program_converter, program_allow_override = (
-        records.program_converters[-1]
-    )
-    assert program_src == "qiskit"
-    assert program_dst == "dummy"
-    assert isinstance(program_converter, DummyProgramConverter)
-    assert program_allow_override is True
-
-    assert records.device_converters
-    device_src, device_dst, device_converter, device_allow_override = (
-        records.device_converters[-1]
-    )
-    assert device_src == "qiskit"
-    assert device_dst == "dummy"
-    assert isinstance(device_converter, DummyDeviceConverter)
-    assert device_allow_override is True
-
-    assert records.device_types
-    lib, device_type, allow_override = records.device_types[-1]
-    assert lib == "qiskit"
-    assert device_type.__name__ == "BackendV2"
-    assert allow_override is True
-
-
-def test_load_with_use_builtins_true(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-use_builtins: true
-""".strip(),
+def _write_yaml(path: Path, data: object) -> None:
+    path.write_text(
+        yaml.safe_dump(
+            data,
+            sort_keys=False,
+            allow_unicode=True,
+        ),
         encoding="utf-8",
     )
 
-    tranqu = Tranqu()
-    tranqu.load(config_path=config_path, reset=True)
 
-    assert tranqu._loaded_config is not None  # noqa: SLF001
-    assert tranqu._loaded_config["use_builtins"] is True  # noqa: SLF001
+def _read_yaml(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+
+    assert isinstance(data, dict)
+    return data
 
 
-def test_load_with_default_transpile(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-use_builtins: true
-default_transpile:
-  program_lib: qiskit
-  transpiler_lib: qiskit
-  transpiler_options:
-    optimization_level: 2
-    seed_transpiler: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    tranqu.load(config_path=config_path, reset=True)
-
-    assert tranqu._default_transpile["program_lib"] == "qiskit"  # noqa: SLF001
-    assert tranqu._default_transpile["transpiler_lib"] == "qiskit"  # noqa: SLF001
-    assert tranqu._default_transpile["transpiler_options"] == {  # noqa: SLF001
-        "optimization_level": 2,
-        "seed_transpiler": 123,
+def _minimal_qiskit_transpiler_config() -> dict[str, object]:
+    return {
+        "program_converters": [],
+        "device_converters": [],
+        "transpilers": {
+            "qiskit": {
+                "class": "tranqu.transpiler.QiskitTranspiler",
+                "args": {
+                    "program_lib": "qiskit",
+                },
+            },
+        },
+        "program_types": {},
+        "device_types": {},
     }
 
 
-def test_save_preserves_loaded_yaml(tmp_path: Path) -> None:
-    src_path = tmp_path / "input.yaml"
-    dst_path = tmp_path / "output.yaml"
+def test_save_writes_all_builtin_registrations(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
 
-    src_path.write_text(
-        """
-use_builtins: true
-default_transpiler_lib: qiskit
-default_transpile:
-  program_lib: qiskit
-  transpiler_lib: qiskit
-  transpiler_options:
-    optimization_level: 1
-""".strip(),
-        encoding="utf-8",
-    )
+    Tranqu().save(config_path=config_path)
 
-    tranqu = Tranqu(config_path=src_path)
-    tranqu.save(config_path=dst_path)
+    saved = _read_yaml(config_path)
 
-    with dst_path.open("r", encoding="utf-8") as f:
-        saved = yaml.safe_load(f)
+    assert len(saved["program_converters"]) == 8
+    assert len(saved["device_converters"]) == 4
+    assert len(saved["transpilers"]) == 3
+    assert len(saved["program_types"]) == 2
+    assert len(saved["device_types"]) == 1
 
-    assert saved["use_builtins"] is True
-    assert saved["default_transpiler_lib"] == "qiskit"
-    assert saved["default_transpile"] == {
-        "program_lib": "qiskit",
-        "transpiler_lib": "qiskit",
-        "transpiler_options": {
-            "optimization_level": 1,
+
+def test_save_does_not_write_use_builtins(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert "use_builtins" not in saved
+
+
+def test_save_does_not_write_unconfigured_default_transpiler(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert "default_transpiler_lib" not in saved
+
+
+def test_save_writes_registered_default_transpiler(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    tranqu = Tranqu()
+    tranqu.register_default_transpiler_lib("tket")
+    tranqu.save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert saved["default_transpiler_lib"] == "tket"
+
+
+def test_saved_program_converter_format(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+    converters = saved["program_converters"]
+
+    assert isinstance(converters, list)
+    assert converters[0] == {
+        "from": "openqasm3",
+        "to": "qiskit",
+        "class": ("tranqu.program_converter.Openqasm3ToQiskitProgramConverter"),
+    }
+
+
+def test_saved_device_converter_format(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+    converters = saved["device_converters"]
+
+    assert isinstance(converters, list)
+    assert converters[0] == {
+        "from": "oqtopus",
+        "to": "qiskit",
+        "class": ("tranqu.device_converter.OqtoqusToQiskitDeviceConverter"),
+    }
+
+
+def test_saved_transpiler_format(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert saved["transpilers"]["qiskit"] == {
+        "class": "tranqu.transpiler.QiskitTranspiler",
+        "args": {
+            "program_lib": "qiskit",
+        },
+    }
+    assert saved["transpilers"]["ouqu-tp"] == {
+        "class": "tranqu.transpiler.OuquTpTranspiler",
+        "args": {
+            "program_lib": "openqasm3",
+        },
+    }
+    assert saved["transpilers"]["tket"] == {
+        "class": "tranqu.transpiler.TketTranspiler",
+        "args": {
+            "program_lib": "tket",
         },
     }
 
 
-def test_save_reflects_updated_default_transpiler_lib(tmp_path: Path) -> None:
-    src_path = tmp_path / "input.yaml"
-    dst_path = tmp_path / "output.yaml"
+def test_saved_program_type_format(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
 
-    src_path.write_text(
-        """
-use_builtins: true
-""".strip(),
-        encoding="utf-8",
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert saved["program_types"] == {
+        "qiskit": {
+            "type": "qiskit.QuantumCircuit",
+        },
+        "tket": {
+            "type": "pytket.Circuit",
+        },
+    }
+
+
+def test_saved_device_type_format(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    Tranqu().save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    assert saved["device_types"] == {
+        "qiskit": {
+            "type": "qiskit.providers.BackendV2",
+        },
+    }
+
+
+def test_save_load_save_round_trip(tmp_path: Path) -> None:
+    first_path = tmp_path / "first.yaml"
+    second_path = tmp_path / "second.yaml"
+
+    Tranqu().save(config_path=first_path)
+
+    loaded = Tranqu(config_path=first_path)
+    loaded.save(config_path=second_path)
+
+    assert _read_yaml(first_path) == _read_yaml(second_path)
+
+
+def test_constructor_with_config_uses_only_yaml_contents(
+    tmp_path: Path,
+) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    _write_yaml(
+        input_path,
+        _minimal_qiskit_transpiler_config(),
     )
 
-    tranqu = Tranqu(config_path=src_path)
-    tranqu.register_default_transpiler_lib("qiskit", allow_override=True)
-    tranqu.save(config_path=dst_path)
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
 
-    with dst_path.open("r", encoding="utf-8") as f:
-        saved = yaml.safe_load(f)
+    saved = _read_yaml(output_path)
+
+    assert set(saved["transpilers"]) == {"qiskit"}
+    assert saved["program_converters"] == []
+    assert saved["device_converters"] == []
+    assert saved["program_types"] == {}
+    assert saved["device_types"] == {}
+
+
+def test_load_discards_existing_builtin_registrations(
+    tmp_path: Path,
+) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    _write_yaml(
+        input_path,
+        _minimal_qiskit_transpiler_config(),
+    )
+
+    tranqu = Tranqu()
+    tranqu.load(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert set(saved["transpilers"]) == {"qiskit"}
+    assert saved["program_converters"] == []
+    assert saved["device_converters"] == []
+    assert saved["program_types"] == {}
+    assert saved["device_types"] == {}
+
+
+def test_load_and_save_default_transpiler_lib(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    config = _minimal_qiskit_transpiler_config()
+    config["default_transpiler_lib"] = "qiskit"
+    _write_yaml(input_path, config)
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
 
     assert saved["default_transpiler_lib"] == "qiskit"
 
 
-def test_save_without_loaded_config_writes_builtin_default(tmp_path: Path) -> None:
-    dst_path = tmp_path / "output.yaml"
-
-    tranqu = Tranqu()
-    tranqu._loaded_config = None  # noqa: SLF001
-    tranqu.save(config_path=dst_path)
-
-    with dst_path.open("r", encoding="utf-8") as f:
-        saved = yaml.safe_load(f)
-
-    assert saved == {"use_builtins": True}
-
-
-def test_load_rejects_non_bool_use_builtins(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-use_builtins: 1
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"use_builtins must be a bool"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_bool_allow_override_in_program_types(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-program_types:
-  - lib: qiskit
-    allow_override: 0
-    type:
-      import: qiskit.circuit:QuantumCircuit
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"program_types\[\]\.allow_override must be a bool",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_bool_allow_override_in_program_converters(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-program_converters:
-  - from: a
-    to: b
-    allow_override: 1
-    factory:
-      import: tranqu.tranqu:Tranqu
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"program_converters\[\]\.allow_override must be a bool",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_bool_allow_override_in_device_converters(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-device_converters:
-  - from: a
-    to: b
-    allow_override: 1
-    factory:
-      import: tranqu.tranqu:Tranqu
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"device_converters\[\]\.allow_override must be a bool",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_bool_allow_override_in_device_types(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-device_types:
-  - lib: qiskit
-    allow_override: 1
-    type:
-      import: qiskit.providers:BackendV2
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"device_types\[\]\.allow_override must be a bool",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_str_default_transpiler_lib(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-default_transpiler_lib: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"default_transpiler_lib must be a str"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_dict_default_transpile(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-default_transpile: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"default_transpile must be a dict"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_dict_default_transpile_options(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-default_transpile:
-  transpiler_options: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"default_transpile\.transpiler_options must be a dict or None",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_str_default_transpile_program_lib(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-default_transpile:
-  program_lib: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"default_transpile\.program_lib must be a str or None",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_str_default_transpile_transpiler_lib(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-default_transpile:
-  transpiler_lib: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        TypeError,
-        match=r"default_transpile\.transpiler_lib must be a str or None",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_list_transpilers(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-transpilers: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"transpilers must be a list"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_dict_factory_kwargs(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-transpilers:
-  - lib: dummy
-    allow_override: false
-    factory:
-      import: tranqu.transpiler.qiskit_transpiler:QiskitTranspiler
-      kwargs: 1
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"factory\.kwargs must be a dict"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_missing_factory_import_in_transpilers(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-transpilers:
-  - lib: dummy
-    allow_override: false
-    factory: {}
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        ValueError,
-        match=r"factory\.import is required \(no builtin mapping table\)",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_str_factory_import(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-transpilers:
-  - lib: dummy
-    allow_override: false
-    factory:
-      import: 123
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"factory\.import must be a str"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_invalid_import_ref(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-program_types:
-  - lib: bad
-    allow_override: false
-    type:
-      import: qiskit.circuit.QuantumCircuit
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(ValueError, match=r"Invalid import ref"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_disallowed_import_prefix(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-program_types:
-  - lib: bad
-    allow_override: false
-    type:
-      import: os:path
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(ValueError, match=r"Import is not allowed"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_type_import_in_program_types(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-program_types:
-  - lib: bad
-    allow_override: false
-    type:
-      import: qiskit.circuit:library
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"Imported symbol is not a type"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_missing_type_import_in_device_types(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-device_types:
-  - lib: qiskit
-    allow_override: false
-    type: {}
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(
-        ValueError,
-        match=r"type\.import is required \(no builtin mapping table\)",
-    ):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_program_converter_factory_result(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-program_converters:
-  - from: qiskit
-    to: dummy
-    allow_override: false
-    factory:
-      import: tranqu.tranqu:Tranqu
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"factory must create a ProgramConverter"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_load_rejects_non_device_converter_factory_result(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-device_converters:
-  - from: qiskit
-    to: dummy
-    allow_override: false
-    factory:
-      import: tranqu.tranqu:Tranqu
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    with pytest.raises(TypeError, match=r"factory must create a DeviceConverter"):
-        tranqu.load(config_path=config_path, reset=True)
-
-
-def test_round_trip_with_program_type_registration(tmp_path: Path) -> None:
-    src_path = tmp_path / "input.yaml"
-    dst_path = tmp_path / "output.yaml"
-
-    src_path.write_text(
-        """
-use_builtins: false
-program_types:
-  - lib: qiskit
-    allow_override: false
-    type:
-      import: qiskit.circuit:QuantumCircuit
-""".strip(),
-        encoding="utf-8",
-    )
-
-    tranqu = Tranqu()
-    tranqu.load(config_path=src_path, reset=True)
-    tranqu.save(config_path=dst_path)
-
-    with dst_path.open("r", encoding="utf-8") as f:
-        saved = yaml.safe_load(f)
-
-    assert saved["use_builtins"] is False
-    assert saved["program_types"] == [
+def test_load_program_type(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    _write_yaml(
+        input_path,
         {
-            "lib": "qiskit",
-            "allow_override": False,
-            "type": {
-                "import": "qiskit.circuit:QuantumCircuit",
+            "program_types": {
+                "qiskit": {
+                    "type": "qiskit.QuantumCircuit",
+                },
             },
-        }
-    ]
+        },
+    )
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["program_types"] == {
+        "qiskit": {
+            "type": "qiskit.QuantumCircuit",
+        },
+    }
 
 
-def test_load_registers_custom_program_and_device_converters_and_device_type(
+def test_load_device_type(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    _write_yaml(
+        input_path,
+        {
+            "device_types": {
+                "qiskit": {
+                    "type": "qiskit.providers.BackendV2",
+                },
+            },
+        },
+    )
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["device_types"] == {
+        "qiskit": {
+            "type": "qiskit.providers.BackendV2",
+        },
+    }
+
+
+def test_load_program_converter(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    converter = {
+        "from": "openqasm3",
+        "to": "qiskit",
+        "class": ("tranqu.program_converter.Openqasm3ToQiskitProgramConverter"),
+    }
+
+    _write_yaml(
+        input_path,
+        {
+            "program_converters": [converter],
+        },
+    )
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["program_converters"] == [converter]
+
+
+def test_load_device_converter(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    converter = {
+        "from": "qiskit",
+        "to": "tket",
+        "class": ("tranqu.device_converter.QiskitToTketDeviceConverter"),
+    }
+
+    _write_yaml(
+        input_path,
+        {
+            "device_converters": [converter],
+        },
+    )
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["device_converters"] == [converter]
+
+
+def test_load_preserves_transpiler_args(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    config = _minimal_qiskit_transpiler_config()
+    _write_yaml(input_path, config)
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["transpilers"]["qiskit"]["args"] == {
+        "program_lib": "qiskit",
+    }
+
+
+def test_load_rejects_non_mapping_yaml_root(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+    _write_yaml(config_path, ["not", "a", "mapping"])
+
+    with pytest.raises(
+        TypeError,
+        match="YAML root must be a mapping/dict",
+    ):
+        Tranqu(config_path=config_path)
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value", "expected_message"),
+    [
+        (
+            "transpilers",
+            [],
+            "transpilers must be a dict",
+        ),
+        (
+            "program_converters",
+            {},
+            "program_converters must be a list",
+        ),
+        (
+            "device_converters",
+            {},
+            "device_converters must be a list",
+        ),
+        (
+            "program_types",
+            [],
+            "program_types must be a dict",
+        ),
+        (
+            "device_types",
+            [],
+            "device_types must be a dict",
+        ),
+    ],
+)
+def test_load_rejects_invalid_top_level_section_types(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    invalid_value: object,
+    expected_message: str,
 ) -> None:
     config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        """
-use_builtins: false
-program_converters:
-  - from: qiskit
-    to: dummy
-    allow_override: true
-    factory:
-      import: tranqu.test_yaml_config:DummyProgramConverter
-device_converters:
-  - from: qiskit
-    to: dummy
-    allow_override: true
-    factory:
-      import: tranqu.test_yaml_config:DummyDeviceConverter
-device_types:
-  - lib: qiskit
-    allow_override: true
-    type:
-      import: qiskit.providers:BackendV2
-transpilers:
-  - lib: dummy
-    allow_override: true
-    factory:
-      import: tranqu.test_yaml_config:DummyTranspiler
-""".strip(),
-        encoding="utf-8",
+
+    _write_yaml(
+        config_path,
+        {
+            field: invalid_value,
+        },
     )
 
-    records = SpyRecords()
-
-    def fake_import_symbol(ref: str) -> object:
-        if ref == "tranqu.test_yaml_config:DummyProgramConverter":
-            return DummyProgramConverter
-        if ref == "tranqu.test_yaml_config:DummyDeviceConverter":
-            return DummyDeviceConverter
-        if ref == "tranqu.test_yaml_config:DummyTranspiler":
-            return DummyTranspiler
-        if ref == "qiskit.providers:BackendV2":
-            return BackendV2
-        pytest.fail(f"unexpected import ref: {ref}")
-
-    monkeypatch.setattr(Tranqu, "_import_symbol", staticmethod(fake_import_symbol))
-    monkeypatch.setattr(
-        Tranqu,
-        "register_program_converter",
-        make_spy_register_program_converter(records),
-    )
-    monkeypatch.setattr(
-        Tranqu,
-        "register_device_converter",
-        make_spy_register_device_converter(records),
-    )
-    monkeypatch.setattr(
-        Tranqu,
-        "register_device_type",
-        make_spy_register_device_type(records),
-    )
-    monkeypatch.setattr(
-        Tranqu,
-        "register_transpiler",
-        make_spy_register_transpiler(records),
-    )
-
-    tranqu = Tranqu()
-    tranqu.load(config_path=config_path, reset=True)
-
-    assert_custom_converters_and_device_type_records(records)
+    with pytest.raises(TypeError, match=expected_message):
+        Tranqu(config_path=config_path)
 
 
-def test_read_yaml_rejects_non_mapping_root(tmp_path: Path) -> None:
+def test_load_rejects_non_string_transpiler_class(
+    tmp_path: Path,
+) -> None:
     config_path = tmp_path / "config.yaml"
-    config_path.write_text("- item\n", encoding="utf-8")
 
-    with pytest.raises(TypeError, match=r"YAML root must be a mapping/dict"):
-        Tranqu().load(config_path=config_path, reset=True)
+    _write_yaml(
+        config_path,
+        {
+            "transpilers": {
+                "qiskit": {
+                    "class": 123,
+                    "args": {},
+                },
+            },
+        },
+    )
+
+    with pytest.raises(TypeError, match="class must be a str"):
+        Tranqu(config_path=config_path)
 
 
-def test_transpile_uses_default_program_and_transpiler_lib(
-    monkeypatch: pytest.MonkeyPatch,
+def test_load_rejects_non_dict_transpiler_args(
+    tmp_path: Path,
 ) -> None:
-    tranqu = Tranqu()
-    tranqu._default_transpile = {  # noqa: SLF001
-        "program_lib": "qiskit",
-        "transpiler_lib": "qiskit",
-        "transpiler_options": {"optimization_level": 1},
-    }
+    config_path = tmp_path / "config.yaml"
 
-    captured: dict[str, object] = {}
-
-    def fake_dispatch(*args: object) -> dict[str, object]:
-        (
-            _,
-            program,
-            program_lib,
-            transpiler_lib,
-            transpiler_options,
-            device,
-            device_lib,
-        ) = args
-        captured["program"] = program
-        captured["program_lib"] = program_lib
-        captured["transpiler_lib"] = transpiler_lib
-        captured["transpiler_options"] = transpiler_options
-        captured["device"] = device
-        captured["device_lib"] = device_lib
-        return {"ok": True}
-
-    monkeypatch.setattr(
-        "tranqu.tranqu.TranspilerDispatcher.dispatch",
-        fake_dispatch,
+    _write_yaml(
+        config_path,
+        {
+            "transpilers": {
+                "qiskit": {
+                    "class": "tranqu.transpiler.QiskitTranspiler",
+                    "args": 123,
+                },
+            },
+        },
     )
 
-    circuit = QuantumCircuit(2)
-    circuit.h(0)
-    circuit.cx(0, 1)
-
-    result = tranqu.transpile(program=circuit)
-
-    assert result == {"ok": True}
-    assert captured["program"] is circuit
-    assert captured["program_lib"] == "qiskit"
-    assert captured["transpiler_lib"] == "qiskit"
-    assert captured["transpiler_options"] == {"optimization_level": 1}
-    assert captured["device"] is None
-    assert captured["device_lib"] is None
+    with pytest.raises(TypeError, match="args must be a dict"):
+        Tranqu(config_path=config_path)
 
 
-def test_transpile_merges_default_transpiler_options(
-    monkeypatch: pytest.MonkeyPatch,
+def test_load_rejects_program_converter_without_from(
+    tmp_path: Path,
 ) -> None:
-    tranqu = Tranqu()
-    tranqu._default_transpile = {  # noqa: SLF001
-        "program_lib": "qiskit",
-        "transpiler_lib": "qiskit",
-        "transpiler_options": {"optimization_level": 1},
-    }
+    config_path = tmp_path / "config.yaml"
 
-    captured: dict[str, object] = {}
-
-    def fake_dispatch(*args: object) -> dict[str, object]:
-        (
-            _,
-            program,
-            program_lib,
-            transpiler_lib,
-            transpiler_options,
-            device,
-            device_lib,
-        ) = args
-        captured["program"] = program
-        captured["program_lib"] = program_lib
-        captured["transpiler_lib"] = transpiler_lib
-        captured["transpiler_options"] = transpiler_options
-        captured["device"] = device
-        captured["device_lib"] = device_lib
-        return {"ok": True}
-
-    monkeypatch.setattr(
-        "tranqu.tranqu.TranspilerDispatcher.dispatch",
-        fake_dispatch,
+    _write_yaml(
+        config_path,
+        {
+            "program_converters": [
+                {
+                    "to": "qiskit",
+                    "class": (
+                        "tranqu.program_converter.Openqasm3ToQiskitProgramConverter"
+                    ),
+                },
+            ],
+        },
     )
 
-    circuit = QuantumCircuit(2)
-    circuit.h(0)
-    circuit.cx(0, 1)
-
-    result = tranqu.transpile(
-        program=circuit,
-        transpiler_options={"seed_transpiler": 123},
-    )
-
-    assert result == {"ok": True}
-    assert captured["program"] is circuit
-    assert captured["program_lib"] == "qiskit"
-    assert captured["transpiler_lib"] == "qiskit"
-    assert captured["transpiler_options"] == {
-        "optimization_level": 1,
-        "seed_transpiler": 123,
-    }
-    assert captured["device"] is None
-    assert captured["device_lib"] is None
+    with pytest.raises(
+        TypeError,
+        match=r"program_converters\[\]\.from must be a str",
+    ):
+        Tranqu(config_path=config_path)
 
 
-def test_transpile_copies_default_transpiler_options(
-    monkeypatch: pytest.MonkeyPatch,
+def test_load_rejects_device_converter_without_to(
+    tmp_path: Path,
 ) -> None:
-    tranqu = Tranqu()
-    default_options = {"optimization_level": 1}
-    tranqu._default_transpile = {  # noqa: SLF001
-        "program_lib": "qiskit",
-        "transpiler_lib": "qiskit",
-        "transpiler_options": default_options,
-    }
+    config_path = tmp_path / "config.yaml"
 
-    captured: dict[str, object] = {}
-
-    def fake_dispatch(*args: object) -> dict[str, object]:
-        captured["transpiler_options"] = args[4]
-        return {"ok": True}
-
-    monkeypatch.setattr(
-        "tranqu.tranqu.TranspilerDispatcher.dispatch",
-        fake_dispatch,
+    _write_yaml(
+        config_path,
+        {
+            "device_converters": [
+                {
+                    "from": "qiskit",
+                    "class": ("tranqu.device_converter.QiskitToTketDeviceConverter"),
+                },
+            ],
+        },
     )
 
-    circuit = QuantumCircuit(1)
-    result = tranqu.transpile(program=circuit)
+    with pytest.raises(
+        TypeError,
+        match=r"device_converters\[\]\.to must be a str",
+    ):
+        Tranqu(config_path=config_path)
 
-    assert result == {"ok": True}
-    assert captured["transpiler_options"] == {"optimization_level": 1}
-    assert captured["transpiler_options"] is not default_options
+
+def test_load_rejects_non_converter_program_class(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "program_converters": [
+                {
+                    "from": "qiskit",
+                    "to": "dummy",
+                    "class": "tranqu.transpiler.QiskitTranspiler",
+                    "args": {
+                        "program_lib": "qiskit",
+                    },
+                },
+            ],
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="class must create a ProgramConverter",
+    ):
+        Tranqu(config_path=config_path)
+
+
+def test_load_rejects_non_converter_device_class(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "device_converters": [
+                {
+                    "from": "qiskit",
+                    "to": "dummy",
+                    "class": "tranqu.transpiler.QiskitTranspiler",
+                    "args": {
+                        "program_lib": "qiskit",
+                    },
+                },
+            ],
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="class must create a DeviceConverter",
+    ):
+        Tranqu(config_path=config_path)
+
+
+def test_load_rejects_non_string_program_type(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "program_types": {
+                "qiskit": {
+                    "type": 123,
+                },
+            },
+        },
+    )
+
+    with pytest.raises(TypeError, match="type must be a str"):
+        Tranqu(config_path=config_path)
+
+
+def test_load_rejects_non_string_device_type(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "device_types": {
+                "qiskit": {
+                    "type": 123,
+                },
+            },
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match=r"device_types\.qiskit\.type must be a str",
+    ):
+        Tranqu(config_path=config_path)
+
+
+def test_load_rejects_disallowed_import_prefix(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "program_types": {
+                "bad": {
+                    "type": "os.PathLike",
+                },
+            },
+        },
+    )
+
+    with pytest.raises(ValueError, match="Import is not allowed"):
+        Tranqu(config_path=config_path)
+
+
+def test_load_rejects_non_dict_default_transpile(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "default_transpile": 123,
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="default_transpile must be a dict",
+    ):
+        Tranqu(config_path=config_path)
+
+
+def test_load_rejects_non_dict_default_transpiler_options(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    _write_yaml(
+        config_path,
+        {
+            "default_transpile": {
+                "transpiler_options": 123,
+            },
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"default_transpile\.transpiler_options "
+            r"must be a dict or None"
+        ),
+    ):
+        Tranqu(config_path=config_path)
