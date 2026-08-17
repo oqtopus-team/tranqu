@@ -134,14 +134,14 @@ class Tranqu:
         self._register_builtin_program_types()
         self._register_builtin_device_types()
 
-    def transpile(  # noqa: PLR0913
+    def transpile(  # ruff: ignore[too-many-arguments]
         self,
-        program: Any,  # noqa: ANN401
+        program: Any,  # ruff: ignore[any-type]
         program_lib: str | None = None,
         transpiler_lib: str | None = None,
         *,
         transpiler_options: dict[str, Any] | None = None,
-        device: Any | None = None,  # noqa: ANN401
+        device: Any | None = None,  # ruff: ignore[any-type]
         device_lib: str | None = None,
     ) -> TranspileResult:
         """Transpile the program using the specified transpiler.
@@ -199,7 +199,7 @@ class Tranqu:
     def register_transpiler(
         self,
         transpiler_lib: str,
-        transpiler: Any,  # noqa: ANN401
+        transpiler: Any,  # ruff: ignore[any-type]
         *,
         allow_override: bool = False,
     ) -> None:

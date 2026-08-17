@@ -21,7 +21,7 @@ class Transpiler(ABC):
 
     @property
     def program_lib(self) -> str:
-        """Returns the program format that this transpiler handles.
+        """Program format that this transpiler handles.
 
         Returns:
             str: The program format identifier (e.g., "qiskit", "tket").
@@ -32,9 +32,9 @@ class Transpiler(ABC):
     @abstractmethod
     def transpile(
         self,
-        program: Any,  # noqa: ANN401
+        program: Any,  # ruff: ignore[any-type]
         options: dict | None = None,
-        device: Any | None = None,  # noqa: ANN401
+        device: Any | None = None,  # ruff: ignore[any-type]
     ) -> TranspileResult:
         """Abstract method to transpile the specified quantum circuit.
 

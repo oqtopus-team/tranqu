@@ -93,7 +93,7 @@ class NestedDictAccessor:
             msg = f"Key not found: {key}"
             raise KeyError(msg)
 
-    def __getattr__(self, item: str) -> Any:  # noqa: ANN401
+    def __getattr__(self, item: str) -> Any:  # ruff: ignore[any-type]
         """Retrieve an attribute from the nested dictionary.
 
         Args:
@@ -119,7 +119,7 @@ class NestedDictAccessor:
         msg = f"No such attribute: {item}"
         raise AttributeError(msg)
 
-    def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+    def __getitem__(self, key: str) -> Any:  # ruff: ignore[any-type]
         """Retrieve an item via subscript (e.g., obj[key]).
 
         Args:
@@ -163,7 +163,7 @@ class NestedDictAccessor:
         """
         return repr(self._d)
 
-    def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
+    def __setitem__(self, key: str, value: Any) -> None:  # ruff: ignore[any-type]
         """Set the key and the value via subscript (e.g., obj[key] = value).
 
         Args:
@@ -223,7 +223,7 @@ class TranspileResult:
 
     def __init__(
         self,
-        transpiled_program: Any,  # noqa: ANN401
+        transpiled_program: Any,  # ruff: ignore[any-type]
         stats: dict[str, dict[str, int]],
         virtual_physical_mapping: dict[str, dict[int, int]],
     ) -> None:
@@ -283,7 +283,7 @@ class TranspileResult:
         """
         return len(self._stats)
 
-    def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+    def __getitem__(self, key: str) -> Any:  # ruff: ignore[any-type]
         """Retrieve a value from the statistical information.
 
         Args:

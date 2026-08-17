@@ -24,7 +24,7 @@ class OuquTpTranspiler(Transpiler):
     def transpile(
         self,
         program: str,
-        options: dict | None = None,  # noqa: ARG002
+        options: dict | None = None,  # ruff: ignore[unused-method-argument]
         device: str | None = None,
     ) -> TranspileResult:
         """Transpile the specified quantum circuit and return a TranspileResult.

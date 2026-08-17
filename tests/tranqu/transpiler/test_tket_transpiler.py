@@ -55,7 +55,7 @@ class BackendForTest(Backend):
         self,
         circuits: Sequence[Circuit],
         n_shots: int | Sequence[int] | None = None,
-        valid_check: bool = True,  # noqa: FBT001, FBT002
+        valid_check: bool = True,  # ruff: ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
         **kwargs: Any,
     ) -> NoReturn:
         _ = (circuits, n_shots, valid_check, kwargs)
@@ -108,7 +108,7 @@ class BackendWithMappingPass(Backend):
         self,
         circuits: Sequence[Circuit],
         n_shots: int | Sequence[int] | None = None,
-        valid_check: bool = True,  # noqa: FBT001, FBT002
+        valid_check: bool = True,  # ruff: ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
         **kwargs: Any,
     ) -> NoReturn:
         _ = (circuits, n_shots, valid_check, kwargs)

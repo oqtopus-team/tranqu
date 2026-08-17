@@ -8,7 +8,7 @@ from .program_converter import ProgramConverter
 class QiskitToTketProgramConverter(ProgramConverter):
     """Converter to transform Qiskit circuits to tket format."""
 
-    def convert(self, program: QuantumCircuit) -> Circuit:  # noqa: PLR6301
+    def convert(self, program: QuantumCircuit) -> Circuit:  # ruff: ignore[no-self-use]
         """Convert a Qiskit quantum circuit to tket format.
 
         Args:

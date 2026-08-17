@@ -42,7 +42,7 @@ class ProgramTypeManager:
 
         self._type_registry[program_type] = program_lib
 
-    def resolve_lib(self, program: Any) -> str | None:  # noqa: ANN401
+    def resolve_lib(self, program: Any) -> str | None:  # ruff: ignore[any-type]
         """Resolve the library identifier for a given program instance.
 
         Args:

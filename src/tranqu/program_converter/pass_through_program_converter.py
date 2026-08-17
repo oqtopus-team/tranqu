@@ -10,7 +10,7 @@ class PassThroughProgramConverter(ProgramConverter):
     when a converter is not needed during transpilation.
     """
 
-    def convert(self, program: Any) -> Any:  # noqa: ANN401 PLR6301
+    def convert(self, program: Any) -> Any:  # ruff: ignore[any-type, no-self-use]
         """Return the input program as is.
 
         Args:
