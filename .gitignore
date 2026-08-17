@@ -168,3 +168,5 @@ cython_debug/
 AGENTS.md
 codex.json
 plans/
+.pi-subagents/
+.serena/
