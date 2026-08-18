@@ -2815,6 +2815,7 @@ dependencies = [
     { name = "ouqu-tp" },
     { name = "pytket" },
     { name = "pytket-qiskit" },
+    { name = "pyyaml" },
     { name = "qiskit" },
     { name = "qiskit-qasm3-import" },
 ]
@@ -2848,6 +2849,7 @@ requires-dist = [
     { name = "ouqu-tp", specifier = ">=1.0.3" },
     { name = "pytket", specifier = ">=2.0.0" },
     { name = "pytket-qiskit", specifier = ">=0.67.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "qiskit", specifier = ">=2.0.0" },
     { name = "qiskit-qasm3-import", specifier = ">=0.5.0" },
 ]

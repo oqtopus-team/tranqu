@@ -903,3 +903,41 @@ def test_save_includes_default_transpiler_lib(tmp_path: Path) -> None:
     saved = _read_yaml(config_path)
 
     assert saved["default_transpiler_lib"] == "tket"
+
+
+def test_load_failure_preserves_existing_state(tmp_path: Path) -> None:
+    before_path = tmp_path / "before.yaml"
+    invalid_path = tmp_path / "invalid.yaml"
+    after_path = tmp_path / "after.yaml"
+
+    tranqu = Tranqu()
+    tranqu.register_default_transpiler_lib("tket")
+    tranqu.save(config_path=before_path)
+
+    _write_yaml(
+        invalid_path,
+        {
+            "transpilers": {
+                "qiskit": {
+                    "class": "tranqu.transpiler.QiskitTranspiler",
+                    "args": {
+                        "program_lib": "qiskit",
+                    },
+                },
+            },
+            "program_converters": "invalid",
+            "device_converters": [],
+            "program_types": {},
+            "device_types": {},
+        },
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="program_converters must be a list",
+    ):
+        tranqu.load(config_path=invalid_path)
+
+    tranqu.save(config_path=after_path)
+
+    assert _read_yaml(after_path) == _read_yaml(before_path)

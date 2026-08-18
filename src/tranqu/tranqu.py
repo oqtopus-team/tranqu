@@ -508,11 +508,7 @@ class Tranqu:
         self._loaded_config = None
         self._loaded_config_path = None
 
-    def load(self, *, config_path: str | Path) -> None:
-        """Load configuration from a YAML file."""
-        config = self._read_yaml(config_path)
-        self._reset_registration_state()
-
+    def _apply_config(self, config: dict[str, Any]) -> None:
         default_transpile_raw = config.get("default_transpile")
         if default_transpile_raw is None:
             default_transpile: dict[str, object] = {}
@@ -575,8 +571,30 @@ class Tranqu:
                 )
             )
 
-        self._loaded_config = copy.deepcopy(config)
-        self._loaded_config_path = Path(config_path)
+    def _replace_registration_state(self, other: Tranqu) -> None:
+        self._program_converter_manager = other._program_converter_manager
+        self._device_converter_manager = other._device_converter_manager
+        self._transpiler_manager = other._transpiler_manager
+        self._program_type_manager = other._program_type_manager
+        self._device_type_manager = other._device_type_manager
+
+        self._config_log = other._config_log
+        self._default_transpile = other._default_transpile
+        self._loaded_config = other._loaded_config
+        self._loaded_config_path = other._loaded_config_path
+
+    def load(self, *, config_path: str | Path) -> None:
+        """Load configuration from a YAML file."""
+        config = self._read_yaml(config_path)
+
+        candidate = Tranqu()
+        candidate._reset_registration_state()
+        candidate._apply_config(config)
+
+        candidate._loaded_config = copy.deepcopy(config)
+        candidate._loaded_config_path = Path(config_path)
+
+        self._replace_registration_state(candidate)
 
     @staticmethod
     def _serialize_transpilers(
