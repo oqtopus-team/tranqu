@@ -5,10 +5,19 @@ from typing import TYPE_CHECKING, Any
 import pytest
 import yaml  # type: ignore[import]
 
+from tranqu.program_converter.program_converter import ProgramConverter
 from tranqu.tranqu import Tranqu
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+
+class ProgramConverterWithArgs(ProgramConverter):
+    def __init__(self, program_lib: str) -> None:
+        self.program_lib = program_lib
+
+    def convert(self, program: Any) -> Any:
+        return program
 
 
 def _write_yaml(path: Path, data: object) -> None:
@@ -894,3 +903,59 @@ def test_load_failure_preserves_existing_state(tmp_path: Path) -> None:
     tranqu.save(config_path=after_path)
 
     assert _read_yaml(after_path) == _read_yaml(before_path)
+
+
+def test_save_converter_includes_args(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+
+    tranqu = Tranqu()
+    tranqu.register_program_converter(
+        "foo",
+        "bar",
+        ProgramConverterWithArgs(program_lib="foo"),
+    )
+
+    tranqu.save(config_path=config_path)
+
+    saved = _read_yaml(config_path)
+
+    converter = next(
+        item
+        for item in saved["program_converters"]
+        if item["from"] == "foo" and item["to"] == "bar"
+    )
+
+    assert converter["args"] == {
+        "program_lib": "foo",
+    }
+
+
+def test_save_includes_default_transpile(tmp_path: Path) -> None:
+    input_path = tmp_path / "input.yaml"
+    output_path = tmp_path / "output.yaml"
+
+    _write_yaml(
+        input_path,
+        {
+            "default_transpile": {
+                "program_lib": "qiskit",
+                "transpiler_lib": "qiskit",
+                "transpiler_options": {
+                    "optimization_level": 1,
+                },
+            },
+        },
+    )
+
+    tranqu = Tranqu(config_path=input_path)
+    tranqu.save(config_path=output_path)
+
+    saved = _read_yaml(output_path)
+
+    assert saved["default_transpile"] == {
+        "program_lib": "qiskit",
+        "transpiler_lib": "qiskit",
+        "transpiler_options": {
+            "optimization_level": 1,
+        },
+    }
