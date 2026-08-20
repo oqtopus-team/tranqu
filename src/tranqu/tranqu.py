@@ -775,16 +775,7 @@ class Tranqu:
 
     @staticmethod
     def _import_symbol(ref: str) -> Any:  # noqa: ANN401
-        if ":" in ref:
-            mod_name, sym = ref.split(":", 1)
-        else:
-            mod_name, sym = ref.rsplit(".", 1)
-
-        allowed_prefixes = ("tranqu.", "qiskit", "pytket")
-        if not mod_name.startswith(allowed_prefixes):
-            message = f"Import is not allowed: {mod_name}"
-            raise ValueError(message)
-
+        mod_name, sym = ref.rsplit(".", 1)
         mod = importlib.import_module(mod_name)
         return getattr(mod, sym)
 

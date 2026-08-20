@@ -632,26 +632,6 @@ def test_load_rejects_non_string_device_type(
         Tranqu(config_path=config_path)
 
 
-def test_load_rejects_disallowed_import_prefix(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    _write_yaml(
-        config_path,
-        {
-            "program_types": {
-                "bad": {
-                    "type": "os.PathLike",
-                },
-            },
-        },
-    )
-
-    with pytest.raises(ValueError, match="Import is not allowed"):
-        Tranqu(config_path=config_path)
-
-
 def test_load_rejects_non_dict_default_transpile(
     tmp_path: Path,
 ) -> None:
@@ -841,33 +821,6 @@ def test_load_rejects_non_string_default_transpile_library(
 
     with pytest.raises(TypeError, match=expected_message):
         Tranqu(config_path=config_path)
-
-
-def test_load_accepts_colon_import_path(tmp_path: Path) -> None:
-    input_path = tmp_path / "input.yaml"
-    output_path = tmp_path / "output.yaml"
-
-    _write_yaml(
-        input_path,
-        {
-            "program_types": {
-                "qiskit": {
-                    "type": "qiskit:QuantumCircuit",
-                },
-            },
-        },
-    )
-
-    tranqu = Tranqu(config_path=input_path)
-    tranqu.save(config_path=output_path)
-
-    saved = _read_yaml(output_path)
-
-    assert saved["program_types"] == {
-        "qiskit": {
-            "type": "qiskit:QuantumCircuit",
-        },
-    }
 
 
 def test_load_rejects_imported_symbol_that_is_not_type(
