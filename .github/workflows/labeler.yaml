@@ -1,77 +1,77 @@
 name: PR Labeler
 
 on:
-  pull_request:
+  # pull_request_target is required so that pull requests from forks get a
+  # token that is allowed to write labels. With `pull_request`, fork PRs get a
+  # read-only token and every labeling attempt fails with
+  # "Resource not accessible by integration".
+  #
+  # Nothing from the pull request head is checked out or executed here: commit
+  # messages are read through the API and only pattern-matched, so the elevated
+  # token is never exposed to code from the fork.
+  pull_request_target:
     types: [opened, synchronize]
     branches:
       # Specify the default branch of your repository (e.g., main or develop)
       - main
       # - develop
 
-#Permissions are required for PRs by dependabot.
 permissions:
+  contents: read
+  issues: write
   pull-requests: write
-  contents: write
 
 jobs:
   labeler:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Fetch all branches
-        run: git fetch --all
-
-      - name: Extract commit messages
+      - name: Collect commit subjects
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          COMMITS=$(git log --format=%B origin/${{ github.event.pull_request.base.ref }}..HEAD)
-          echo "$COMMITS"
-          echo "$COMMITS" > commits.txt
+          gh api "repos/$REPO/pulls/$PR_NUMBER/commits" --paginate \
+            --jq '.[].commit.message | split("\n")[0]' > commits.txt
+          cat commits.txt
 
-      - name: Debug - Print commits
-        run: cat commits.txt
-
-      - name: Set labels based on commit messages
+      - name: Set labels based on commit subjects
         id: set-labels
         run: |
           labels=()
           while IFS= read -r commit; do
             echo "Processing commit: $commit"
-            if [[ $commit =~ ^feat ]]; then
-              labels+=("feature")
-            elif [[ $commit =~ ^fix ]]; then
-              labels+=("bugfix")
-            elif [[ $commit =~ ^docs ]]; then
-              labels+=("documentation")
-            elif [[ $commit =~ ^style ]]; then
-              labels+=("style")
-            elif [[ $commit =~ ^refactor ]]; then
-              labels+=("refactor")
-            elif [[ $commit =~ ^test ]]; then
-              labels+=("test")
-            elif [[ $commit =~ ^ci ]]; then
-              labels+=("ci")
-            elif [[ $commit =~ ^chore ]]; then
-              labels+=("chore")
-            fi
+            case "$commit" in
+              feat*) labels+=("feature") ;;
+              fix*) labels+=("bugfix") ;;
+              docs*) labels+=("documentation") ;;
+              style*) labels+=("style") ;;
+              refactor*) labels+=("refactor") ;;
+              test*) labels+=("test") ;;
+              ci*) labels+=("ci") ;;
+              chore*) labels+=("chore") ;;
+            esac
           done < commits.txt
 
           # Remove duplicate labels and join them as a newline-separated string
-          unique_labels=$(printf "%s\n" "${labels[@]}" | sort -u)
+          unique_labels=""
+          if [ ${#labels[@]} -gt 0 ]; then
+            unique_labels=$(printf "%s\n" "${labels[@]}" | sort -u)
+          fi
 
           # Debug output for unique labels
           echo "Unique labels:"
           echo "$unique_labels"
 
           # Set the output as a newline-separated string
-          echo "labels<<EOF" >> $GITHUB_OUTPUT
-          echo "$unique_labels" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "labels<<EOF"
+            echo "$unique_labels"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Add labels to PR
+        if: steps.set-labels.outputs.labels != ''
         uses: actions-ecosystem/action-add-labels@v1
         with:
           labels: ${{ steps.set-labels.outputs.labels }}
