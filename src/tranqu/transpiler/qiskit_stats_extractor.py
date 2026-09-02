@@ -31,35 +31,6 @@ class QiskitStatsExtractor:
             if instruction.operation.name not in QISKIT_NON_GATE_OPERATION_NAMES
         ]
 
-<<<<<<< HEAD
-    @staticmethod
-    def _count_single_qubit_gates(program: QuantumCircuit) -> int:
-        data = program.data
-        count = 0
-        for instruction in data:
-            # is 1 qubit?
-            if len(instruction.qubits) != 1:
-                continue
-            # is non gate opration?
-            if instruction.operation.name in QiskitStatsExtractor._NON_GATE_OPERATION:
-                continue
-            count += 1
-        return count
-
-    @staticmethod
-    def _count_two_qubit_gates(program: QuantumCircuit) -> int:
-        data = program.data
-        count = 0
-        for instruction in data:
-            # is 2 qubit?
-            if len(instruction.qubits) != 2:  # ruff: ignore[magic-value-comparison]
-                continue
-            # is non gate opration?
-            if instruction.operation.name in QiskitStatsExtractor._NON_GATE_OPERATION:
-                continue
-            count += 1
-        return count
-=======
         return {
             "n_qubits": program.num_qubits,
             "n_gates": len(gates),
@@ -67,4 +38,3 @@ class QiskitStatsExtractor:
             "n_gates_2q": sum(1 for gate in gates if len(gate.qubits) == TWO_QUBIT),
             "depth": program.depth(),
         }
->>>>>>> origin/pr-76
