@@ -1,27 +1,21 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
+
+from .non_gate_operation import QISKIT_NON_GATE_OPERATION_NAMES
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit  # type: ignore[import-untyped]
-from qiskit.circuit.controlflow import (  # type: ignore[import-untyped]
-    CONTROL_FLOW_OP_NAMES,
-)
+
+SINGLE_QUBIT = 1
+TWO_QUBIT = 2
 
 
 class QiskitStatsExtractor:
     """Extract statistical information from Qiskit quantum circuits."""
 
-    _NON_GATE_OPERATION: ClassVar[set[str]] = {
-        "measure",
-        "reset",
-        "barrier",
-        "delay",
-        "initialize",
-        *CONTROL_FLOW_OP_NAMES,  # 'if_else','for_loop','while_loop','switch_case'
-    }
-
-    def extract_stats_from(self, program: QuantumCircuit) -> dict[str, int]:
+    @staticmethod
+    def extract_stats_from(program: QuantumCircuit) -> dict[str, int]:
         """Extract statistical information from a Qiskit quantum circuit.
 
         Args:
@@ -31,24 +25,13 @@ class QiskitStatsExtractor:
             dict[str, int]: Statistical information about the circuit.
 
         """
-        stats = {}
-        stats["n_qubits"] = program.num_qubits
-        stats["n_gates"] = self._count_gates(program)
-        stats["n_gates_1q"] = self._count_single_qubit_gates(program)
-        stats["n_gates_2q"] = self._count_two_qubit_gates(program)
-        stats["depth"] = program.depth()
-        return stats
-
-    @staticmethod
-    def _count_gates(program: QuantumCircuit) -> int:
-        # sum non_gate operation
-        return sum(
-            1
+        gates = [
+            instruction
             for instruction in program.data
-            if instruction.operation.name
-            not in QiskitStatsExtractor._NON_GATE_OPERATION
-        )
+            if instruction.operation.name not in QISKIT_NON_GATE_OPERATION_NAMES
+        ]
 
+<<<<<<< HEAD
     @staticmethod
     def _count_single_qubit_gates(program: QuantumCircuit) -> int:
         data = program.data
@@ -76,3 +59,12 @@ class QiskitStatsExtractor:
                 continue
             count += 1
         return count
+=======
+        return {
+            "n_qubits": program.num_qubits,
+            "n_gates": len(gates),
+            "n_gates_1q": sum(1 for gate in gates if len(gate.qubits) == SINGLE_QUBIT),
+            "n_gates_2q": sum(1 for gate in gates if len(gate.qubits) == TWO_QUBIT),
+            "depth": program.depth(),
+        }
+>>>>>>> origin/pr-76
