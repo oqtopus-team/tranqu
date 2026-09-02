@@ -70,7 +70,7 @@ class TranspilerManager:
     def register_transpiler(
         self,
         transpiler_lib: str,
-        transpiler: Any,  # noqa: ANN401
+        transpiler: Any,  # ruff: ignore[any-type]
         *,
         allow_override: bool = False,
     ) -> None:
@@ -96,7 +96,7 @@ class TranspilerManager:
     def fetch_transpiler(
         self,
         transpiler_lib: str,
-    ) -> Any:  # noqa: ANN401
+    ) -> Any:  # ruff: ignore[any-type]
         """Fetch a registered transpiler by its library name.
 
         Args:

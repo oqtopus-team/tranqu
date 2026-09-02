@@ -38,7 +38,7 @@ class DeviceTypeManager:
 
         self._type_registry[device_type] = device_lib
 
-    def resolve_lib(self, device: Any) -> str | None:  # noqa: ANN401
+    def resolve_lib(self, device: Any) -> str | None:  # ruff: ignore[any-type]
         """Resolve library based on device type.
 
         Args:

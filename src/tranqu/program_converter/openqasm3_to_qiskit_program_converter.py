@@ -7,7 +7,7 @@ from .program_converter import ProgramConverter
 class Openqasm3ToQiskitProgramConverter(ProgramConverter):
     """Converter that transforms programs in OpenQASM3 format to Qiskit's format."""
 
-    def convert(self, program: str) -> QuantumCircuit:  # noqa: PLR6301
+    def convert(self, program: str) -> QuantumCircuit:  # ruff: ignore[no-self-use]
         """Convert the specified OpenQASM3 format program to Qiskit's format.
 
         Args:

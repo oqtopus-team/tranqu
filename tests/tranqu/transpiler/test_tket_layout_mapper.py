@@ -34,7 +34,7 @@ def test_create_mapping_uses_identity_when_final_map_is_missing() -> None:
 
 
 def _qubit_index(mapper: TketLayoutMapper, qubit: object, circuit: FakeCircuit) -> int:
-    return mapper._qubit_index(qubit, cast("Any", circuit))  # noqa: SLF001
+    return mapper._qubit_index(qubit, cast("Any", circuit))  # ruff: ignore[private-member-access]
 
 
 def test_qubit_index_returns_integer_index() -> None:

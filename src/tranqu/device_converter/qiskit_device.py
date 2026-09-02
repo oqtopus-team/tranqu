@@ -21,8 +21,8 @@ class QiskitDevice(BackendV2):
         self._target = target
 
     @property
-    def target(self) -> Any:  # noqa: ANN401
-        """Retrieve the target information of the device.
+    def target(self) -> Any:  # ruff: ignore[any-type]
+        """Target information of the device.
 
         Returns:
             Target: Target information used in the transpiler.
@@ -31,7 +31,7 @@ class QiskitDevice(BackendV2):
         return self._target
 
     @property
-    def max_circuits(self) -> Any:  # noqa: ANN401
+    def max_circuits(self) -> Any:  # ruff: ignore[any-type]
         """Raise an exception for unsupported functionality.
 
         Raises:
@@ -45,7 +45,7 @@ class QiskitDevice(BackendV2):
     def _default_options(cls) -> Options:
         return Options()
 
-    def run(self, _run_input: Any, **_options: dict[str, Any]) -> Any:  # noqa: ANN401
+    def run(self, _run_input: Any, **_options: dict[str, Any]) -> Any:  # ruff: ignore[any-type]
         """Raise an exception for unsupported functionality.
 
         Args:

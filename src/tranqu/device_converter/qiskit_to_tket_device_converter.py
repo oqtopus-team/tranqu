@@ -29,7 +29,7 @@ class QiskitToTketDeviceConverter(DeviceConverter):
     """Converter that transforms Qiskit backends to tket device information."""
 
     @staticmethod
-    def convert(device: BackendV2) -> Backend:  # noqa: C901
+    def convert(device: BackendV2) -> Backend:  # ruff: ignore[complex-structure]
         """Convert a Qiskit device to a tket device.
 
         Args:
@@ -94,13 +94,13 @@ class QiskitToTketDeviceConverter(DeviceConverter):
                 self,
                 circuits: Sequence[Circuit],
                 n_shots: int | Sequence[int] | None = None,
-                valid_check: bool = True,  # noqa: FBT001, FBT002
-                **kwargs: Any,  # noqa: ANN401
+                valid_check: bool = True,  # ruff: ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+                **kwargs: Any,  # ruff: ignore[any-type]
             ) -> NoReturn:
                 _ = (self, circuits, n_shots, valid_check, kwargs)
                 raise NotImplementedError(CONVERSION_ONLY_ERROR)
 
-            def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:  # noqa: ANN401
+            def get_result(self, handle: ResultHandle, **kwargs: Any) -> NoReturn:  # ruff: ignore[any-type]
                 _ = (self, handle, kwargs)
                 raise NotImplementedError(CONVERSION_ONLY_ERROR)
 

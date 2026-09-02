@@ -11,7 +11,7 @@ class ProgramConverter(ABC):
     """
 
     @abstractmethod
-    def convert(self, program: Any) -> Any:  # noqa: ANN401
+    def convert(self, program: Any) -> Any:  # ruff: ignore[any-type]
         """Convert a given program to a different format or representation.
 
         Subclasses should implement this method to
