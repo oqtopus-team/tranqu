@@ -97,7 +97,9 @@ from .program_converter import (
     ProgramConverter,
     ProgramConverterManager,
     QiskitToOpenqasm3ProgramConverter,
+    QiskitToQuriPartsProgramConverter,
     QiskitToTketProgramConverter,
+    QuripartsToQiskitProgramConverter,
     TketToOpenqasm3ProgramConverter,
     TketToQiskitProgramConverter,
 )
@@ -393,6 +395,16 @@ class Tranqu:
             "tket",
             "qiskit",
             TketToQiskitProgramConverter(),
+        )
+        self.register_program_converter(
+            "qiskit",
+            "quri-parts",
+            QiskitToQuriPartsProgramConverter(),
+        )
+        self.register_program_converter(
+            "quri-parts",
+            "qiskit",
+            QuripartsToQiskitProgramConverter(),
         )
 
     def _register_builtin_device_converters(self) -> None:
