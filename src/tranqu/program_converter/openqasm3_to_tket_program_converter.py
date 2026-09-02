@@ -8,7 +8,7 @@ from .program_converter import ProgramConverter
 class Openqasm3ToTketProgramConverter(ProgramConverter):
     """Converter that transforms OpenQASM3 to tket format quantum circuits."""
 
-    def convert(self, program: str) -> Circuit:  # noqa: PLR6301
+    def convert(self, program: str) -> Circuit:  # ruff: ignore[no-self-use]
         """Convert a quantum program in OpenQASM3 format to tket format.
 
         Args:

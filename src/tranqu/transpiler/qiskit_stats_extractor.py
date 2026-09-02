@@ -69,7 +69,7 @@ class QiskitStatsExtractor:
         count = 0
         for instruction in data:
             # is 2 qubit?
-            if len(instruction.qubits) != 2:  # noqa: PLR2004
+            if len(instruction.qubits) != 2:  # ruff: ignore[magic-value-comparison]
                 continue
             # is non gate opration?
             if instruction.operation.name in QiskitStatsExtractor._NON_GATE_OPERATION:

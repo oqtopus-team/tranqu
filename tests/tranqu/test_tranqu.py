@@ -193,7 +193,7 @@ c[1] = measure q[1];
             assert_semantically_valid_oqtopus_qiskit_qasm(result.transpiled_program)
 
     def test_program_conversion_via_qiskit(self, tranqu: Tranqu):
-        tranqu._program_converter_manager._converters.clear()  # noqa: SLF001
+        tranqu._program_converter_manager._converters.clear()  # ruff: ignore[private-member-access]
 
         tranqu.register_program_converter(
             "tket",
@@ -243,7 +243,7 @@ c[1] = measure q[1];
                 }
             ],
         }
-        tranqu._device_converter_manager._converters.clear()  # noqa: SLF001
+        tranqu._device_converter_manager._converters.clear()  # ruff: ignore[private-member-access]
         tranqu.register_device_type("oqtopus", dict)
         tranqu.register_device_converter(
             "oqtopus", "qiskit", OqtoqusToQiskitDeviceConverter()

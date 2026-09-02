@@ -11,7 +11,7 @@ class DeviceConverter(ABC):
     """
 
     @abstractmethod
-    def convert(self, device: Any) -> Any:  # noqa: ANN401
+    def convert(self, device: Any) -> Any:  # ruff: ignore[any-type]
         """Convert a given device to a different format or representation.
 
         Subclasses should implement this method to define specific conversion logic.

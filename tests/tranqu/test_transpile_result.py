@@ -35,7 +35,7 @@ class TestNestedDictAccessor:
         assert accessor.key1 == "value1"
 
         with pytest.raises(AttributeError):
-            accessor.key0  # noqa: B018
+            accessor.key0  # ruff: ignore[useless-expression]
 
     def test__getitem__(self, accessor: NestedDictAccessor):
         assert accessor["key1"] == "value1"
@@ -52,7 +52,7 @@ class TestNestedDictAccessor:
     def test__iter__(self, accessor: NestedDictAccessor):
         key_list = []
         for key in accessor:
-            key_list.append(key)  # noqa: PERF402
+            key_list.append(key)  # ruff: ignore[manual-list-copy]
 
         assert key_list == ["key1", "key2"]
 

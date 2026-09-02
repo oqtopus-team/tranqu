@@ -123,7 +123,7 @@ class TestQiskitToTketDeviceConverter:
             result.process_circuits([Circuit(1)])
         with pytest.raises(NotImplementedError, match="conversion only"):
             result.get_result(ResultHandle("0"))
-        assert result._result_id_type == (str,)  # noqa: SLF001
+        assert result._result_id_type == (str,)  # ruff: ignore[private-member-access]
         with pytest.raises(NotImplementedError, match="conversion only"):
             result.circuit_status(ResultHandle("0"))
 
@@ -201,7 +201,7 @@ class MockQiskitBackend(BackendV2):
         self,
         circuit: Circuit,
         n_shots: int | None = None,
-        valid_check: bool = True,  # noqa: FBT001, FBT002
+        valid_check: bool = True,  # ruff: ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
         **kwargs: Any,
     ) -> ResultHandle:
         """Process a circuit (not used in this converter)."""
@@ -212,7 +212,7 @@ class MockQiskitBackend(BackendV2):
         self,
         circuits: Sequence[Circuit],
         n_shots: int | Sequence[int] | None = None,
-        valid_check: bool = True,  # noqa: FBT001, FBT002
+        valid_check: bool = True,  # ruff: ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
         **kwargs: Any,
     ) -> list[ResultHandle]:
         """Process multiple circuits (not used in this converter)."""

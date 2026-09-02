@@ -21,7 +21,7 @@ from .qiskit_device import QiskitDevice
 class OqtoqusToQiskitDeviceConverter(DeviceConverter):
     """Device converter for converting from Oqtopus to Qiskit format."""
 
-    def convert(self, device: Any) -> BackendV2:  # noqa: ANN401
+    def convert(self, device: Any) -> BackendV2:  # ruff: ignore[any-type]
         """Convert a Oqtopus device to Qiskit device format.
 
         Args:
@@ -53,7 +53,7 @@ class OqtoqusToQiskitDeviceConverter(DeviceConverter):
         return QiskitDevice(device_id, target)
 
     @staticmethod
-    def _convert_oqtopus_device_to_qiskit_target(oqtopus_device: dict) -> Target:  # noqa: PLR0914
+    def _convert_oqtopus_device_to_qiskit_target(oqtopus_device: dict) -> Target:  # ruff: ignore[too-many-locals]
         target = Target()
 
         # x, sx, rz instructions

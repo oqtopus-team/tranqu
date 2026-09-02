@@ -4,7 +4,7 @@ from tranqu.transpiler.tket_transpiler import TketTranspiler
 
 
 def _apply_minimal_pass(circuit: Circuit, optimization_level: int) -> Circuit:
-    return TketTranspiler._apply_minimal_pass(circuit, optimization_level)  # noqa: SLF001
+    return TketTranspiler._apply_minimal_pass(circuit, optimization_level)  # ruff: ignore[private-member-access]
 
 
 def test_apply_minimal_pass_returns_original_circuit_at_level_zero() -> None:

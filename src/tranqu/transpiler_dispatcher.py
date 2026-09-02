@@ -74,13 +74,13 @@ class TranspilerDispatcher:
         self._program_type_manager = program_type_manager
         self._device_type_manager = device_type_manager
 
-    def dispatch(  # noqa: PLR0913 PLR0917
+    def dispatch(  # ruff: ignore[too-many-arguments, too-many-positional-arguments]
         self,
-        program: Any,  # noqa: ANN401
+        program: Any,  # ruff: ignore[any-type]
         program_lib: str | None,
         transpiler_lib: str | None,
         transpiler_options: dict[str, Any] | None,
-        device: Any | None,  # noqa: ANN401
+        device: Any | None,  # ruff: ignore[any-type]
         device_lib: str | None,
     ) -> TranspileResult:
         """Execute transpilation of a quantum circuit.
@@ -148,7 +148,7 @@ class TranspilerDispatcher:
 
         return selected_lib
 
-    def _resolve_program_lib(self, program: Any, program_lib: str | None) -> str:  # noqa: ANN401
+    def _resolve_program_lib(self, program: Any, program_lib: str | None) -> str:  # ruff: ignore[any-type]
         if program_lib is None:
             resolved_lib = self._program_type_manager.resolve_lib(program)
         else:
@@ -166,7 +166,7 @@ class TranspilerDispatcher:
 
     def _resolve_device_lib(
         self,
-        device: Any | None,  # noqa: ANN401
+        device: Any | None,  # ruff: ignore[any-type]
         device_lib: str | None,
     ) -> str | None:
         if device is None and device_lib is not None:
@@ -180,7 +180,7 @@ class TranspilerDispatcher:
 
         return resolved_lib
 
-    def _convert_program(self, program: Any, *, from_lib: str, to_lib: str) -> Any:  # noqa: ANN401
+    def _convert_program(self, program: Any, *, from_lib: str, to_lib: str) -> Any:  # ruff: ignore[any-type]
         if self._can_convert_program_directly(from_lib=from_lib, to_lib=to_lib):
             direct_converter = self._program_converter_manager.fetch_converter(
                 from_lib=from_lib,
@@ -222,11 +222,11 @@ class TranspilerDispatcher:
 
     def _convert_device(
         self,
-        device: Any | None,  # noqa: ANN401
+        device: Any | None,  # ruff: ignore[any-type]
         *,
         from_lib: str | None,
         to_lib: str,
-    ) -> Any | None:  # noqa: ANN401
+    ) -> Any | None:  # ruff: ignore[any-type]
         if device is None:
             return None
 

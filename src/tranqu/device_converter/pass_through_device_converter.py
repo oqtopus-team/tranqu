@@ -10,7 +10,7 @@ class PassThroughDeviceConverter(DeviceConverter):
     when a converter is not needed during transpilation.
     """
 
-    def convert(self, device: Any) -> Any:  # noqa: ANN401 PLR6301
+    def convert(self, device: Any) -> Any:  # ruff: ignore[any-type, no-self-use]
         """Return the input device as is.
 
         Args:
