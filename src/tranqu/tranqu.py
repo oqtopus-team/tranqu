@@ -719,12 +719,12 @@ class Tranqu:
         return value
 
     @staticmethod
-    def _import_symbol(ref: str) -> Any:  # noqa: ANN401
+    def _import_symbol(ref: str) -> Any:  # ruff: ignore[ANN401]
         mod_name, sym = ref.rsplit(".", 1)
         mod = importlib.import_module(mod_name)
         return getattr(mod, sym)
 
-    def _instantiate_class_spec(self, spec: dict[str, object]) -> Any:  # noqa: ANN401
+    def _instantiate_class_spec(self, spec: dict[str, object]) -> Any:  # ruff: ignore[ANN401]
         class_path = self._require_str(spec.get("class"), "class")
         args = self._require_dict(spec.get("args", {}), "args")
 
