@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 import yaml  # type: ignore[import]
 
+from tranqu.device_converter.device_converter import DeviceConverter
 from tranqu.program_converter.program_converter import ProgramConverter
 from tranqu.tranqu import Tranqu
 
@@ -18,6 +19,37 @@ class ProgramConverterWithArgs(ProgramConverter):
 
     def convert(self, program: Any) -> Any:
         return program
+
+
+class CustomProgramConverter(ProgramConverter):
+    def __init__(self, mode: str, options: dict[str, Any]) -> None:
+        self.mode = mode
+        self.options = options
+
+    def convert(self, program: Any) -> Any:
+        return self.mode, self.options["levels"], program
+
+
+class CustomDeviceConverter(DeviceConverter):
+    def __init__(self, mode: str, options: dict[str, Any]) -> None:
+        self.mode = mode
+        self.options = options
+
+    def convert(self, device: Any) -> Any:
+        return self.mode, self.options["levels"], device
+
+
+class CustomTranspiler:
+    def __init__(self, mode: str, options: dict[str, Any]) -> None:
+        self.mode = mode
+        self.options = options
+
+    def transpile(self, program: Any) -> Any:
+        return self.mode, self.options["levels"], program
+
+
+class TranspilerWithoutArgs:
+    program_lib = "metadata-only"
 
 
 def _write_yaml(path: Path, data: object) -> None:
@@ -78,18 +110,6 @@ def test_save_does_not_write_use_builtins(tmp_path: Path) -> None:
     saved = _read_yaml(config_path)
 
     assert "use_builtins" not in saved
-
-
-def test_save_does_not_write_unconfigured_default_transpiler(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    Tranqu().save(config_path=config_path)
-
-    saved = _read_yaml(config_path)
-
-    assert "default_transpiler_lib" not in saved
 
 
 def test_save_writes_registered_default_transpiler(tmp_path: Path) -> None:
@@ -450,6 +470,34 @@ def test_load_rejects_invalid_top_level_section_types(
         Tranqu(config_path=config_path)
 
 
+@pytest.mark.parametrize(
+    ("section", "spec"),
+    [
+        (
+            "transpilers",
+            {
+                "class": "tranqu.transpiler.QiskitTranspiler",
+                "args": {"program_lib": "qiskit"},
+            },
+        ),
+        ("program_types", {"type": "qiskit.QuantumCircuit"}),
+        ("device_types", {"type": "qiskit.providers.BackendV2"}),
+    ],
+)
+@pytest.mark.parametrize("key", [123, 1.5, True, None])
+def test_load_rejects_non_string_library_keys(
+    tmp_path: Path,
+    section: str,
+    spec: dict[str, Any],
+    key: object,
+) -> None:
+    config_path = tmp_path / "config.yaml"
+    _write_yaml(config_path, {section: {key: spec}})
+
+    with pytest.raises(TypeError, match=f"{section} key must be a str"):
+        Tranqu(config_path=config_path)
+
+
 def test_load_rejects_non_string_transpiler_class(
     tmp_path: Path,
 ) -> None:
@@ -641,195 +689,46 @@ def test_load_rejects_non_string_device_type(
         Tranqu(config_path=config_path)
 
 
-def test_load_rejects_non_dict_default_transpile(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    _write_yaml(
-        config_path,
-        {
-            "default_transpile": 123,
-        },
-    )
-
-    with pytest.raises(
-        TypeError,
-        match="default_transpile must be a dict",
-    ):
-        Tranqu(config_path=config_path)
-
-
-def test_load_rejects_non_dict_default_transpiler_options(
-    tmp_path: Path,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    _write_yaml(
-        config_path,
-        {
-            "default_transpile": {
-                "transpiler_options": 123,
-            },
-        },
-    )
-
-    with pytest.raises(
-        TypeError,
-        match=(
-            r"default_transpile\.transpiler_options "
-            r"must be a dict or None"
-        ),
-    ):
-        Tranqu(config_path=config_path)
-
-
-def test_default_transpile_is_applied(
+@pytest.mark.parametrize(
+    "options",
+    [None, {}, {"optimization_level": 3, "nested": {"levels": [1, 2]}}],
+)
+def test_loaded_config_preserves_transpile_arguments(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    options: dict[str, Any] | None,
 ) -> None:
     config_path = tmp_path / "config.yaml"
+    original = Tranqu()
+    original.register_default_transpiler_lib("qiskit")
+    original.save(config_path=config_path)
+    loaded = Tranqu(config_path=config_path)
 
-    _write_yaml(
-        config_path,
-        {
-            "default_transpile": {
-                "program_lib": "qiskit",
-                "transpiler_lib": "qiskit",
-                "transpiler_options": {
-                    "optimization_level": 2,
-                },
-            },
-        },
-    )
-
-    captured: dict[str, object] = {}
+    captured: list[tuple[object, ...]] = []
     expected_result = object()
 
-    def fake_dispatch(*args: object) -> object:
-        (
-            _self,
-            program,
-            program_lib,
-            transpiler_lib,
-            transpiler_options,
-            device,
-            device_lib,
-        ) = args
-
-        captured["program"] = program
-        captured["program_lib"] = program_lib
-        captured["transpiler_lib"] = transpiler_lib
-        captured["transpiler_options"] = transpiler_options
-        captured["device"] = device
-        captured["device_lib"] = device_lib
+    def fake_dispatch(_self: object, *args: object) -> object:
+        captured.append(args)
         return expected_result
 
     monkeypatch.setattr(
         "tranqu.tranqu.TranspilerDispatcher.dispatch",
         fake_dispatch,
     )
-
     program = object()
-    tranqu = Tranqu(config_path=config_path)
+    device = object()
 
-    result = tranqu.transpile(program)
+    for tranqu in (original, loaded):
+        result = tranqu.transpile(
+            program,
+            transpiler_options=options,
+            device=device,
+            device_lib="qiskit",
+        )
+        assert result is expected_result
 
-    assert result is expected_result
-    assert captured == {
-        "program": program,
-        "program_lib": "qiskit",
-        "transpiler_lib": "qiskit",
-        "transpiler_options": {
-            "optimization_level": 2,
-        },
-        "device": None,
-        "device_lib": None,
-    }
-
-
-def test_explicit_transpiler_options_override_defaults(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    _write_yaml(
-        config_path,
-        {
-            "default_transpile": {
-                "transpiler_options": {
-                    "optimization_level": 1,
-                    "seed_transpiler": 123,
-                },
-            },
-        },
-    )
-
-    captured: dict[str, object] = {}
-
-    def fake_dispatch(
-        _self: object,
-        _program: object,
-        _program_lib: str | None,
-        _transpiler_lib: str | None,
-        transpiler_options: dict[str, object] | None,
-        _device: object | None,
-        _device_lib: str | None,
-    ) -> object:
-        captured["transpiler_options"] = transpiler_options
-        return object()
-
-    monkeypatch.setattr(
-        "tranqu.tranqu.TranspilerDispatcher.dispatch",
-        fake_dispatch,
-    )
-
-    tranqu = Tranqu(config_path=config_path)
-    tranqu.transpile(
-        object(),
-        transpiler_options={
-            "optimization_level": 3,
-        },
-    )
-
-    assert captured["transpiler_options"] == {
-        "optimization_level": 3,
-        "seed_transpiler": 123,
-    }
-
-
-@pytest.mark.parametrize(
-    ("field", "expected_message"),
-    [
-        (
-            "program_lib",
-            r"default_transpile\.program_lib must be a str or None",
-        ),
-        (
-            "transpiler_lib",
-            r"default_transpile\.transpiler_lib must be a str or None",
-        ),
-    ],
-)
-def test_load_rejects_non_string_default_transpile_library(
-    tmp_path: Path,
-    field: str,
-    expected_message: str,
-) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    _write_yaml(
-        config_path,
-        {
-            "default_transpile": {
-                field: 123,
-            },
-        },
-    )
-
-    with pytest.raises(TypeError, match=expected_message):
-        Tranqu(config_path=config_path)
+    assert captured == [(program, None, None, options, device, "qiskit")] * 2
+    assert all(args[3] is options for args in captured)
 
 
 def test_load_rejects_imported_symbol_that_is_not_type(
@@ -853,18 +752,6 @@ def test_load_rejects_imported_symbol_that_is_not_type(
         match="Imported symbol is not a type",
     ):
         Tranqu(config_path=config_path)
-
-
-def test_save_includes_default_transpiler_lib(tmp_path: Path) -> None:
-    config_path = tmp_path / "config.yaml"
-
-    tranqu = Tranqu()
-    tranqu.register_default_transpiler_lib("tket")
-    tranqu.save(config_path=config_path)
-
-    saved = _read_yaml(config_path)
-
-    assert saved["default_transpiler_lib"] == "tket"
 
 
 def test_load_failure_preserves_existing_state(tmp_path: Path) -> None:
@@ -930,32 +817,73 @@ def test_save_converter_includes_args(tmp_path: Path) -> None:
     }
 
 
-def test_save_includes_default_transpile(tmp_path: Path) -> None:
-    input_path = tmp_path / "input.yaml"
-    output_path = tmp_path / "output.yaml"
+@pytest.mark.parametrize(
+    ("registration", "custom_class", "libs"),
+    [
+        ("program_converter", CustomProgramConverter, ("foo", "bar")),
+        ("device_converter", CustomDeviceConverter, ("foo", "bar")),
+        ("transpiler", CustomTranspiler, ("custom",)),
+    ],
+)
+def test_custom_constructor_args_round_trip(
+    tmp_path: Path,
+    registration: str,
+    custom_class: type[
+        CustomProgramConverter | CustomDeviceConverter | CustomTranspiler
+    ],
+    libs: tuple[str, ...],
+) -> None:
+    first_path = tmp_path / "first.yaml"
+    second_path = tmp_path / "second.yaml"
+    args: dict[str, Any] = {"mode": "fast", "options": {"levels": [1, 2]}}
+    tranqu = Tranqu()
+    instance = custom_class(**args)
+    register = getattr(tranqu, f"register_{registration}")
+    register(*libs, instance, args=args)
 
-    _write_yaml(
-        input_path,
-        {
-            "default_transpile": {
-                "program_lib": "qiskit",
-                "transpiler_lib": "qiskit",
-                "transpiler_options": {
-                    "optimization_level": 1,
-                },
-            },
-        },
+    # Mutating caller-owned arguments must not change the saved registration.
+    args["mode"] = "slow"
+    instance.options["levels"].append(3)
+    tranqu.save(config_path=first_path)
+    saved = _read_yaml(first_path)
+    entries = saved[f"{registration}s"]
+    entry = (
+        entries["custom"]
+        if registration == "transpiler"
+        else next(item for item in entries if item["from"] == "foo")
     )
+    assert entry["args"] == {"mode": "fast", "options": {"levels": [1, 2]}}
 
-    tranqu = Tranqu(config_path=input_path)
-    tranqu.save(config_path=output_path)
+    loaded = Tranqu(config_path=first_path)
+    manager = getattr(loaded, f"_{registration}_manager")
+    fetch = (
+        manager.fetch_transpiler
+        if registration == "transpiler"
+        else manager.fetch_converter
+    )
+    restored = fetch(*libs)
+    assert isinstance(restored, custom_class)
+    assert restored is not instance
+    operation = (
+        restored.transpile
+        if isinstance(restored, CustomTranspiler)
+        else restored.convert
+    )
+    assert operation("input") == ("fast", [1, 2], "input")
 
-    saved = _read_yaml(output_path)
+    loaded.save(config_path=second_path)
+    assert _read_yaml(second_path) == saved
 
-    assert saved["default_transpile"] == {
-        "program_lib": "qiskit",
-        "transpiler_lib": "qiskit",
-        "transpiler_options": {
-            "optimization_level": 1,
-        },
-    }
+
+def test_explicit_empty_args_disable_inference(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+    tranqu = Tranqu()
+    tranqu.register_transpiler("custom", TranspilerWithoutArgs(), args={})
+
+    tranqu.save(config_path=config_path)
+    saved = _read_yaml(config_path)
+    assert "args" not in saved["transpilers"]["custom"]
+
+    loaded = Tranqu(config_path=config_path)
+    loaded.save(config_path=config_path)
+    assert _read_yaml(config_path) == saved
