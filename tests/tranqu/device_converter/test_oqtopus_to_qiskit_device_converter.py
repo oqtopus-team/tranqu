@@ -102,3 +102,61 @@ class TestOqtoqusToQiskitDeviceConverter:
         result = self.converter.convert(oqtopus_device)
 
         assert isinstance(result, BackendV2)
+
+    def test_convert_coupling_rzx90_duration_to_seconds(self):
+        oqtopus_device = {
+            "device_id": "local_device",
+            "qubits": [
+                {
+                    "id": 0,
+                    "fidelity": 0.99,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+                {
+                    "id": 1,
+                    "fidelity": 0.99,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+            ],
+            "couplings": [
+                {
+                    "control": 0,
+                    "target": 1,
+                    "fidelity": 0.98,
+                    "gate_duration": {"rzx90": 200},
+                },
+            ],
+        }
+
+        target = self.converter.convert(oqtopus_device).target
+
+        assert target["cx"][0, 1].duration == pytest.approx(2e-7)
+
+    def test_convert_coupling_cx_duration_to_seconds(self):
+        oqtopus_device = {
+            "device_id": "local_device",
+            "qubits": [
+                {
+                    "id": 0,
+                    "fidelity": 0.99,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+                {
+                    "id": 1,
+                    "fidelity": 0.99,
+                    "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                },
+            ],
+            "couplings": [
+                {
+                    "control": 0,
+                    "target": 1,
+                    "fidelity": 0.98,
+                    "gate_duration": {"cx": 200},
+                },
+            ],
+        }
+
+        target = self.converter.convert(oqtopus_device).target
+
+        assert target["cx"][0, 1].duration == pytest.approx(2e-7)

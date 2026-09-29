@@ -102,7 +102,13 @@ class OqtoqusToQiskitDeviceConverter(DeviceConverter):
         # cx instructions
         cx_props = {}
         for coupling in oqtopus_device["couplings"]:
-            duration = coupling.get("gate_duration", {}).get("cx")
+            gate_duration = coupling.get("gate_duration", {})
+            if "rzx90" in gate_duration:
+                duration = gate_duration["rzx90"] * 1e-9
+            elif "cx" in gate_duration:
+                duration = gate_duration["cx"] * 1e-9
+            else:
+                duration = None
             error = 1 - coupling["fidelity"] if "fidelity" in coupling else None
             cx_props[int(coupling["control"]), int(coupling["target"])] = (
                 InstructionProperties(duration=duration, error=error)
