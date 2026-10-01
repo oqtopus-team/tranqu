@@ -1,6 +1,7 @@
 # mypy: disable-error-code="import-untyped"
 
 import math
+import warnings
 
 import pytest
 from pytket import Circuit  # type: ignore[attr-defined]
@@ -552,3 +553,306 @@ h q;
             for i in range(custom_dt_result.transpiled_program.num_qubits)
         )
         assert default_duration == custom_duration * 2
+
+    class TestCalibrationKept:
+        def test_calibration_kept_no_invalidate_warning_and_best_edge(
+            self, tranqu: Tranqu
+        ):
+            device = {
+                "device_id": "test_3q",
+                "qubits": [
+                    {
+                        "id": 0,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 1,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 2,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                ],
+                "couplings": [
+                    {
+                        "control": 0,
+                        "target": 1,
+                        "fidelity": 0.80,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                    {
+                        "control": 1,
+                        "target": 2,
+                        "fidelity": 0.99,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                ],
+            }
+            circuit = QuantumCircuit(2)
+            circuit.cx(0, 1)
+            basis_gates = ["sx", "rz", "cx", "id"]
+
+            with warnings.catch_warnings(record=True) as recorded_warnings:
+                warnings.simplefilter("always")
+                result = tranqu.transpile(
+                    circuit,
+                    program_lib="qiskit",
+                    transpiler_lib="qiskit",
+                    device=device,
+                    device_lib="oqtopus",
+                    transpiler_options={
+                        "basis_gates": basis_gates,
+                        "seed_transpiler": 42,
+                    },
+                )
+
+            invalidate_warnings = [
+                w for w in recorded_warnings if "invalidate" in str(w.message).lower()
+            ]
+            assert len(invalidate_warnings) == 0
+
+            # The chosen layout uses the best-calibrated edge (1, 2)
+            mapping = result.virtual_physical_mapping.qubit_mapping
+            assert (mapping[0], mapping[1]) == (1, 2)
+
+        def test_output_gates_within_basis(self, tranqu: Tranqu):
+            device = {
+                "device_id": "test_3q",
+                "qubits": [
+                    {
+                        "id": 0,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 1,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 2,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                ],
+                "couplings": [
+                    {
+                        "control": 0,
+                        "target": 1,
+                        "fidelity": 0.80,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                    {
+                        "control": 1,
+                        "target": 2,
+                        "fidelity": 0.99,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                ],
+            }
+            circuit = QuantumCircuit(2)
+            circuit.h(0)
+            circuit.cx(0, 1)
+            basis_gates = ["sx", "rz", "cx", "id"]
+
+            result = tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=device,
+                device_lib="oqtopus",
+                transpiler_options={
+                    "basis_gates": basis_gates,
+                    "seed_transpiler": 42,
+                },
+            )
+
+            allowed_gates = set(basis_gates) | {"measure", "barrier", "delay", "reset"}
+            assert all(
+                inst.operation.name in allowed_gates
+                for inst in result.transpiled_program.data
+            )
+
+        def test_basis_gates_with_coupling_map_still_works(self, tranqu: Tranqu):
+            device = {
+                "device_id": "test_3q",
+                "qubits": [
+                    {
+                        "id": 0,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 1,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 2,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                ],
+                "couplings": [
+                    {
+                        "control": 0,
+                        "target": 1,
+                        "fidelity": 0.80,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                    {
+                        "control": 1,
+                        "target": 2,
+                        "fidelity": 0.99,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                ],
+            }
+            circuit = QuantumCircuit(2)
+            circuit.cx(0, 1)
+            basis_gates = ["sx", "rz", "cx", "id"]
+
+            result = tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=device,
+                device_lib="oqtopus",
+                transpiler_options={
+                    "basis_gates": basis_gates,
+                    "coupling_map": [[0, 1], [1, 2]],
+                    "seed_transpiler": 42,
+                },
+            )
+            assert isinstance(result, TranspileResult)
+            allowed_gates = set(basis_gates) | {"measure", "barrier", "delay", "reset"}
+            assert all(
+                inst.operation.name in allowed_gates
+                for inst in result.transpiled_program.data
+            )
+
+    class TestDirectionAware:
+        def test_direction_aware_bell_circuit_mapping_and_sx_count(
+            self, tranqu: Tranqu
+        ):
+            device = {
+                "device_id": "test_2q",
+                "qubits": [
+                    {
+                        "id": 0,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                    {
+                        "id": 1,
+                        "fidelity": 0.99,
+                        "gate_duration": {"x": 60.0, "sx": 30.0, "rz": 0},
+                    },
+                ],
+                "couplings": [
+                    {
+                        "control": 1,
+                        "target": 0,
+                        "fidelity": 0.95,
+                        "gate_duration": {"cx": 60.0},
+                    },
+                ],
+            }
+            circuit = QuantumCircuit(2)
+            circuit.h(0)
+            circuit.cx(0, 1)
+
+            result_aware = tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=device,
+                device_lib="oqtopus",
+                transpiler_options={"direction_aware": True, "seed_transpiler": 42},
+            )
+            result_without_option = tranqu.transpile(
+                circuit,
+                program_lib="qiskit",
+                transpiler_lib="qiskit",
+                device=device,
+                device_lib="oqtopus",
+                transpiler_options={"seed_transpiler": 42},
+            )
+
+            # Maps logical 0 to physical 1
+            mapping = result_aware.virtual_physical_mapping.qubit_mapping
+            assert mapping[0] == 1
+            assert mapping[1] == 0
+
+            # No H sandwich -> fewer sx than without the option
+            sx_aware = sum(
+                1
+                for inst in result_aware.transpiled_program.data
+                if inst.operation.name == "sx"
+            )
+            sx_without = sum(
+                1
+                for inst in result_without_option.transpiled_program.data
+                if inst.operation.name == "sx"
+            )
+            assert sx_aware < sx_without
+
+            # All CX in registered direction (1 -> 0)
+            cx_instructions = [
+                inst
+                for inst in result_aware.transpiled_program.data
+                if inst.operation.name == "cx"
+            ]
+            assert len(cx_instructions) > 0
+            for inst in cx_instructions:
+                ctrl = result_aware.transpiled_program.find_bit(inst.qubits[0]).index
+                tgt = result_aware.transpiled_program.find_bit(inst.qubits[1]).index
+                assert (ctrl, tgt) == (1, 0)
+
+        def test_direction_aware_without_device_raises_value_error(
+            self, tranqu: Tranqu
+        ):
+            circuit = QuantumCircuit(2)
+            circuit.h(0)
+            circuit.cx(0, 1)
+
+            with pytest.raises(
+                ValueError, match="direction_aware requires a device or a target"
+            ):
+                tranqu.transpile(
+                    circuit,
+                    program_lib="qiskit",
+                    transpiler_lib="qiskit",
+                    transpiler_options={"direction_aware": True},
+                )
+
+        def test_direction_aware_with_coupling_map_raises_value_error(
+            self, tranqu: Tranqu
+        ):
+            device = {
+                "device_id": "test_2q",
+                "qubits": [{"id": 0}, {"id": 1}],
+                "couplings": [{"control": 1, "target": 0}],
+            }
+            circuit = QuantumCircuit(2)
+            circuit.h(0)
+            circuit.cx(0, 1)
+
+            with pytest.raises(
+                ValueError, match="direction_aware requires a device or a target"
+            ):
+                tranqu.transpile(
+                    circuit,
+                    program_lib="qiskit",
+                    transpiler_lib="qiskit",
+                    device=device,
+                    device_lib="oqtopus",
+                    transpiler_options={
+                        "direction_aware": True,
+                        "coupling_map": [[1, 0]],
+                    },
+                )

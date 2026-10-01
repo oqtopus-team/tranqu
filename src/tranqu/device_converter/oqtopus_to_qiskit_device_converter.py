@@ -87,9 +87,10 @@ class OqtoqusToQiskitDeviceConverter(DeviceConverter):
                 duration=sx_duration,
                 error=error,
             )
+            # rz is a virtual (frame) gate, so it adds no error.
             rz_props[int(qubit["id"]),] = InstructionProperties(
-                duration=rz_duration,
-                error=error,
+                duration=rz_duration if rz_duration is not None else 0.0,
+                error=0.0,
             )
             meas_props[int(qubit["id"]),] = InstructionProperties(error=meas_error)
 

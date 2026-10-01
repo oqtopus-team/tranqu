@@ -1,3 +1,5 @@
+import math
+
 import pytest
 from qiskit.providers import BackendV2  # type: ignore[import-untyped]
 
@@ -64,6 +66,31 @@ class TestOqtoqusToQiskitDeviceConverter:
         result = self.converter.convert(oqtopus_device)
 
         assert isinstance(result, BackendV2)
+        for q in range(4):
+            assert math.isclose(result.target["rz"][q,].error, 0.0, abs_tol=1e-9)
+            assert math.isclose(result.target["rz"][q,].duration, 0.0, abs_tol=1e-9)
+
+    def test_rz_error_is_zero(self):
+        oqtopus_device = {
+            "device_id": "local_device",
+            "qubits": [
+                {
+                    "id": 0,
+                    "fidelity": 0.90,
+                    "gate_duration": {"rz": 0},
+                },
+                {
+                    "id": 1,
+                    "fidelity": 0.95,
+                },
+            ],
+            "couplings": [{"control": 0, "target": 1}],
+        }
+        result = self.converter.convert(oqtopus_device)
+        assert math.isclose(result.target["rz"][0,].error, 0.0, abs_tol=1e-9)
+        assert math.isclose(result.target["rz"][0,].duration, 0.0, abs_tol=1e-9)
+        assert math.isclose(result.target["rz"][1,].error, 0.0, abs_tol=1e-9)
+        assert math.isclose(result.target["rz"][1,].duration, 0.0, abs_tol=1e-9)
 
     def test_convert_invalid_device_no_name(self):
         oqtopus_device = {
