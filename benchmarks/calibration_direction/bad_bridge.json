@@ -1,0 +1,668 @@
+{
+  "name": "A",
+  "device_id": "A",
+  "qubits": [
+    {
+      "id": 0,
+      "physical_id": 8,
+      "position": {
+        "x": 6.666666666666667,
+        "y": 11.666666666666666
+      },
+      "fidelity": 0.9991311704688524,
+      "meas_error": {
+        "prob_meas1_prep0": 0.08479999999999999,
+        "prob_meas0_prep1": 0.12060000000000004,
+        "readout_assignment_error": 0.114990234375
+      },
+      "qubit_lifetime": {
+        "t1": 14.66173857094057,
+        "t2": 18.657138073023056
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 1,
+      "physical_id": 10,
+      "position": {
+        "x": 6.666666666666667,
+        "y": 10.0
+      },
+      "fidelity": 0.9985080235252743,
+      "meas_error": {
+        "prob_meas1_prep0": 0.11580000000000001,
+        "prob_meas0_prep1": 0.09209999999999996,
+        "readout_assignment_error": 0.117919921875
+      },
+      "qubit_lifetime": {
+        "t1": 6.696955539036785,
+        "t2": 9.128626256301194
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 2,
+      "physical_id": 11,
+      "position": {
+        "x": 8.333333333333334,
+        "y": 10.0
+      },
+      "fidelity": 0.9994764189401171,
+      "meas_error": {
+        "prob_meas1_prep0": 0.05589999999999995,
+        "prob_meas0_prep1": 0.08699999999999997,
+        "readout_assignment_error": 0.058837890625
+      },
+      "qubit_lifetime": {
+        "t1": 25.177396549550764,
+        "t2": 17.079804074206347
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 3,
+      "physical_id": 24,
+      "position": {
+        "x": 6.666666666666667,
+        "y": 8.333333333333332
+      },
+      "fidelity": 0.9992858630618269,
+      "meas_error": {
+        "prob_meas1_prep0": 0.23040000000000005,
+        "prob_meas0_prep1": 0.2489,
+        "readout_assignment_error": 0.2236328125
+      },
+      "qubit_lifetime": {
+        "t1": 18.041832730496427,
+        "t2": 23.208329539939943
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 4,
+      "physical_id": 25,
+      "position": {
+        "x": 8.333333333333334,
+        "y": 8.333333333333332
+      },
+      "fidelity": 0.9994665852135594,
+      "meas_error": {
+        "prob_meas1_prep0": 0.014700000000000046,
+        "prob_meas0_prep1": 0.04259999999999997,
+        "readout_assignment_error": 0.03076171875
+      },
+      "qubit_lifetime": {
+        "t1": 19.09439351947614,
+        "t2": 22.865674524560962
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 5,
+      "physical_id": 26,
+      "position": {
+        "x": 6.666666666666667,
+        "y": 6.666666666666666
+      },
+      "fidelity": 0.9988227813912809,
+      "meas_error": {
+        "prob_meas1_prep0": 0.007499999999999951,
+        "prob_meas0_prep1": 0.045599999999999974,
+        "readout_assignment_error": 0.032958984375
+      },
+      "qubit_lifetime": {
+        "t1": 20.873866871054926,
+        "t2": 15.503692787358556
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 6,
+      "physical_id": 27,
+      "position": {
+        "x": 8.333333333333334,
+        "y": 6.666666666666666
+      },
+      "fidelity": 0.9995070400234367,
+      "meas_error": {
+        "prob_meas1_prep0": 0.043399999999999994,
+        "prob_meas0_prep1": 0.08150000000000002,
+        "readout_assignment_error": 0.064697265625
+      },
+      "qubit_lifetime": {
+        "t1": 13.759915122353611,
+        "t2": 17.251598653512076
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 7,
+      "physical_id": 28,
+      "position": {
+        "x": 10.0,
+        "y": 8.333333333333332
+      },
+      "fidelity": 0.9995347162810836,
+      "meas_error": {
+        "prob_meas1_prep0": 0.032200000000000006,
+        "prob_meas0_prep1": 0.057499999999999996,
+        "readout_assignment_error": 0.045654296875
+      },
+      "qubit_lifetime": {
+        "t1": 22.49314678642016,
+        "t2": 22.8051249732439
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 8,
+      "physical_id": 29,
+      "position": {
+        "x": 11.666666666666666,
+        "y": 8.333333333333332
+      },
+      "fidelity": 0.9985102514350188,
+      "meas_error": {
+        "prob_meas1_prep0": 0.01529999999999998,
+        "prob_meas0_prep1": 0.07720000000000005,
+        "readout_assignment_error": 0.0576171875
+      },
+      "qubit_lifetime": {
+        "t1": 5.94639305795004,
+        "t2": 9.694649149966613
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 9,
+      "physical_id": 30,
+      "position": {
+        "x": 10.0,
+        "y": 6.666666666666666
+      },
+      "fidelity": 0.9995717993400398,
+      "meas_error": {
+        "prob_meas1_prep0": 0.015499999999999958,
+        "prob_meas0_prep1": 0.04300000000000004,
+        "readout_assignment_error": 0.031005859375
+      },
+      "qubit_lifetime": {
+        "t1": 21.097527357208808,
+        "t2": 17.758386597591002
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 10,
+      "physical_id": 31,
+      "position": {
+        "x": 11.666666666666666,
+        "y": 6.666666666666666
+      },
+      "fidelity": 0.9994681128826052,
+      "meas_error": {
+        "prob_meas1_prep0": 0.02429999999999999,
+        "prob_meas0_prep1": 0.06769999999999998,
+        "readout_assignment_error": 0.052490234375
+      },
+      "qubit_lifetime": {
+        "t1": 10.18977409996001,
+        "t2": 21.49893858080167
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 11,
+      "physical_id": 44,
+      "position": {
+        "x": 10.0,
+        "y": 4.999999999999999
+      },
+      "fidelity": 0.9996144087478511,
+      "meas_error": {
+        "prob_meas1_prep0": 0.029299999999999993,
+        "prob_meas0_prep1": 0.05130000000000001,
+        "readout_assignment_error": 0.04638671875
+      },
+      "qubit_lifetime": {
+        "t1": 19.18311842224559,
+        "t2": 24.315818595648793
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 12,
+      "physical_id": 45,
+      "position": {
+        "x": 11.666666666666666,
+        "y": 4.999999999999999
+      },
+      "fidelity": 0.9993882974379933,
+      "meas_error": {
+        "prob_meas1_prep0": 0.028699999999999948,
+        "prob_meas0_prep1": 0.05049999999999999,
+        "readout_assignment_error": 0.045654296875
+      },
+      "qubit_lifetime": {
+        "t1": 19.780875921194053,
+        "t2": 15.716394962334839
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 13,
+      "physical_id": 47,
+      "position": {
+        "x": 11.666666666666666,
+        "y": 3.333333333333332
+      },
+      "fidelity": 0.9994926306634049,
+      "meas_error": {
+        "prob_meas1_prep0": 0.05059999999999998,
+        "prob_meas0_prep1": 0.058699999999999974,
+        "readout_assignment_error": 0.059814453125
+      },
+      "qubit_lifetime": {
+        "t1": 18.872010435032685,
+        "t2": 19.185813101114785
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 14,
+      "physical_id": 56,
+      "position": {
+        "x": 6.666666666666667,
+        "y": 1.666666666666666
+      },
+      "fidelity": 0.9992953566504599,
+      "meas_error": {
+        "prob_meas1_prep0": 0.03849999999999998,
+        "prob_meas0_prep1": 0.09719999999999995,
+        "readout_assignment_error": 0.058349609375
+      },
+      "qubit_lifetime": {
+        "t1": 19.70210539547153,
+        "t2": 23.14818651241741
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 15,
+      "physical_id": 57,
+      "position": {
+        "x": 8.333333333333334,
+        "y": 1.666666666666666
+      },
+      "fidelity": 0.9995112667805919,
+      "meas_error": {
+        "prob_meas1_prep0": 0.013499999999999956,
+        "prob_meas0_prep1": 0.03979999999999995,
+        "readout_assignment_error": 0.03076171875
+      },
+      "qubit_lifetime": {
+        "t1": 16.49154446686241,
+        "t2": 17.258009560221378
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 16,
+      "physical_id": 58,
+      "position": {
+        "x": 6.666666666666667,
+        "y": 0.0
+      },
+      "fidelity": 0.9979203707018129,
+      "meas_error": {
+        "prob_meas1_prep0": 0.008399999999999963,
+        "prob_meas0_prep1": 0.26249999999999996,
+        "readout_assignment_error": 0.05908203125
+      },
+      "qubit_lifetime": {
+        "t1": 3.2683623277005687,
+        "t2": 10.204878030337415
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 17,
+      "physical_id": 59,
+      "position": {
+        "x": 8.333333333333334,
+        "y": 0.0
+      },
+      "fidelity": 0.9985643705197469,
+      "meas_error": {
+        "prob_meas1_prep0": 0.046599999999999975,
+        "prob_meas0_prep1": 0.07830000000000004,
+        "readout_assignment_error": 0.18408203125
+      },
+      "qubit_lifetime": {
+        "t1": 17.818826908296728,
+        "t2": 22.346580596069717
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 18,
+      "physical_id": 60,
+      "position": {
+        "x": 10.0,
+        "y": 1.666666666666666
+      },
+      "fidelity": 0.9994490167371322,
+      "meas_error": {
+        "prob_meas1_prep0": 0.06159999999999999,
+        "prob_meas0_prep1": 0.027100000000000013,
+        "readout_assignment_error": 0.042236328125
+      },
+      "qubit_lifetime": {
+        "t1": 19.02240519132313,
+        "t2": 26.21524255818063
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 19,
+      "physical_id": 61,
+      "position": {
+        "x": 11.666666666666666,
+        "y": 1.666666666666666
+      },
+      "fidelity": 0.9991212475153384,
+      "meas_error": {
+        "prob_meas1_prep0": 0.020499999999999963,
+        "prob_meas0_prep1": 0.0615,
+        "readout_assignment_error": 0.041259765625
+      },
+      "qubit_lifetime": {
+        "t1": 16.666472360917922,
+        "t2": 16.48870982481853
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    },
+    {
+      "id": 20,
+      "physical_id": 62,
+      "position": {
+        "x": 10.0,
+        "y": 0.0
+      },
+      "fidelity": 0.9992661840432879,
+      "meas_error": {
+        "prob_meas1_prep0": 0.036900000000000044,
+        "prob_meas0_prep1": 0.09109999999999996,
+        "readout_assignment_error": 0.064208984375
+      },
+      "qubit_lifetime": {
+        "t1": 10.607555863937392,
+        "t2": 14.737370782833217
+      },
+      "gate_duration": {
+        "rz": 0,
+        "sx": 16,
+        "x": 24
+      }
+    }
+  ],
+  "couplings": [
+    {
+      "control": 0,
+      "target": 1,
+      "fidelity": 0.9668141160560265,
+      "gate_duration": {
+        "rzx90": 112
+      }
+    },
+    {
+      "control": 2,
+      "target": 1,
+      "fidelity": 0.970858384212043,
+      "gate_duration": {
+        "rzx90": 144
+      }
+    },
+    {
+      "control": 3,
+      "target": 4,
+      "fidelity": 0.8871762134642738,
+      "gate_duration": {
+        "rzx90": 144
+      }
+    },
+    {
+      "control": 3,
+      "target": 5,
+      "fidelity": 0.9547337280854311,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 3,
+      "target": 1,
+      "fidelity": 0.973624451373757,
+      "gate_duration": {
+        "rzx90": 96
+      }
+    },
+    {
+      "control": 6,
+      "target": 4,
+      "fidelity": 0.9751922582578396,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 6,
+      "target": 9,
+      "fidelity": 0.9726185918786668,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 7,
+      "target": 8,
+      "fidelity": 0.9141216137405949,
+      "gate_duration": {
+        "rzx90": 192
+      }
+    },
+    {
+      "control": 7,
+      "target": 9,
+      "fidelity": 0.9750036250570621,
+      "gate_duration": {
+        "rzx90": 144
+      }
+    },
+    {
+      "control": 7,
+      "target": 4,
+      "fidelity": 0.972801779451427,
+      "gate_duration": {
+        "rzx90": 208
+      }
+    },
+    {
+      "control": 10,
+      "target": 8,
+      "fidelity": 0.9400299330633465,
+      "gate_duration": {
+        "rzx90": 144
+      }
+    },
+    {
+      "control": 10,
+      "target": 9,
+      "fidelity": 0.9767096766752544,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 11,
+      "target": 12,
+      "fidelity": 0.9691150047864066,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 11,
+      "target": 9,
+      "fidelity": 0.7,
+      "gate_duration": {
+        "rzx90": 96
+      }
+    },
+    {
+      "control": 13,
+      "target": 12,
+      "fidelity": 0.8613970004760108,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 13,
+      "target": 19,
+      "fidelity": 0.9639017070614322,
+      "gate_duration": {
+        "rzx90": 96
+      }
+    },
+    {
+      "control": 14,
+      "target": 15,
+      "fidelity": 0.9523440950666331,
+      "gate_duration": {
+        "rzx90": 176
+      }
+    },
+    {
+      "control": 14,
+      "target": 16,
+      "fidelity": 0.9110765322518513,
+      "gate_duration": {
+        "rzx90": 176
+      }
+    },
+    {
+      "control": 17,
+      "target": 20,
+      "fidelity": 0.9717026554999169,
+      "gate_duration": {
+        "rzx90": 128
+      }
+    },
+    {
+      "control": 18,
+      "target": 19,
+      "fidelity": 0.960732119834448,
+      "gate_duration": {
+        "rzx90": 240
+      }
+    },
+    {
+      "control": 18,
+      "target": 20,
+      "fidelity": 0.9078564277941565,
+      "gate_duration": {
+        "rzx90": 192
+      }
+    },
+    {
+      "control": 18,
+      "target": 15,
+      "fidelity": 0.8617005381602669,
+      "gate_duration": {
+        "rzx90": 256
+      }
+    }
+  ],
+  "calibrated_at": "2026-08-31T00:42:46.985000Z"
+}
