@@ -43,7 +43,23 @@ uv run python benchmarks/calibration_direction/compare.py \
 
 全数値は [RESULTS.md](RESULTS.md)。
 
-## 結果（`basis`、10 seed 平均）
+## 結果
+
+図は `uv run --with matplotlib python benchmarks/calibration_direction/plot.py results_before.json results_after.json`（修正後のブランチで実行）で再生成できる。
+
+### SWAP 不要の回路: 選ばれた配置の全候補中の順位（seed 0）
+
+![rank](fig_rank.png)
+
+灰色の点は、SWAP なしで置ける全配置（単純経路 × 向き）を `initial_layout` 固定で変換した NLL。3+4A+4B は 4 回路すべてで全候補中 1 位の配置を選ぶ。3+4A は bell2・ghz4・ghz8 で 1 位を逃す（配置は良いが CX の向きが逆）。修正前の順位は ISSUES の fig7 と異なる（Qiskit のバージョン差、下記）。
+
+### 全ベンチマーク回路: seed ごとの NLL 変化（対 修正前）
+
+![bench](fig_bench.png)
+
+0 より下が改善。3+4A は ghz21 で 6 seed 悪化するが、3+4A+4B は全回路・全 seed で修正前と同じか良い。
+
+### 平均値（`basis`、10 seed）
 
 | 回路 | NLL 修正前 → 3+4A → 3+4A+4B | sx+x 修正前 / 3+4A / +4B | 実行時間 [ns] 修正前 → +4B | +4B の勝/同/負（対 修正前） | +4B の勝/同/負（対 3+4A） |
 |---|---:|---:|---:|---:|---:|
